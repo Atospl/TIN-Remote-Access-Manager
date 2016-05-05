@@ -15,8 +15,8 @@ public:
     char* getName();
     void runServer();
 private:
-    bool running = false;
     Server();
+    bool running = false;
     int port;
     char* name;
     int serverSocketDescriptor;

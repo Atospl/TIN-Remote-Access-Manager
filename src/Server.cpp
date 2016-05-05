@@ -9,11 +9,10 @@
 #include <iostream>
 #include <unistd.h>
 #include <arpa/inet.h>
-#include <cstring>
 
 using namespace std;
 
-Server::Server() : name((char*)"Brutal anal penetrator"), port(80) {
+Server::Server() : name((char*)"WebServer"), port(8080) {
 
 }
 
@@ -22,43 +21,50 @@ char* Server::getName() {
 }
 
 void Server::runServer() {
+    running = true;
+    cout << "Weszlo1" << endl;
     serverSocketDescriptor = socket(AF_INET, SOCK_STREAM, 0);
     if (serverSocketDescriptor < 0) {
-        cout << "Pierdol sie, sockecie";
+        cout << "Niech cie, sockecie";
         return;
     }
+    int enable = 1;
+    setsockopt(serverSocketDescriptor, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int));
     sockaddr_in address;
     address.sin_family = AF_INET;
-    address.sin_addr.s_addr = inet_addr("127.0.0.1");
+    address.sin_addr.s_addr = htonl(INADDR_ANY);
     address.sin_port = htons(8080);
     int status = bind(serverSocketDescriptor, (sockaddr*) &address, sizeof(address));
+    cout << "Weszlo2" << endl;
     if (status < 0) {
-        cout << "Pierdol sie, bindzie";
+        cout << "Niech cie, bindzie";
         return;
     }
     status = listen(serverSocketDescriptor, 5);
+    cout << "Weszlo3" << endl;
     if (status < 0) {
-        cout << "Pierdol sie, listenie";
+        cout << "Niech cie, listenie";
         return;
     }
-    sockaddr_in returnAddress;
-    socklen_t addressLength;
     socketDescriptor = accept(serverSocketDescriptor, (sockaddr*) 0, (socklen_t *) 0);
+    for (int x = 0; x<10000; ++x);
+    cout << "Weszlo4" << endl;
     if (socketDescriptor < 0) {
-        cout << "Pierdol sie, accepcie";
+        cout << "Niech cie, accepcie" << endl;
         return;
     }
-    char buffer[1024] = "Hello client!\n";
-    write(socketDescriptor, buffer, strlen(buffer));
-//    status = recv(socketDescriptor, buffer, 1024, 0);
-//    if (status < 0) {
-//        cout << "Pierdol sie, recvie";
-//        close(socketDescriptor);
-//        close(serverSocketDescriptor);
-//        return;
-//    }
-//    cout << buffer;
-
+    char* buffer;
+    buffer = new char[1024];
+    cout << "Weszlo5" << endl;
+    status = read(socketDescriptor, buffer, 1024);
+    if (status < 0) {
+        cout << "Niech cie, recvie";
+        close(socketDescriptor);
+        close(serverSocketDescriptor);
+        return;
+    }
+    cout << "Wiadomosc: " << buffer << endl;
+    delete[] buffer;
     close(socketDescriptor);
     close(serverSocketDescriptor);
 
