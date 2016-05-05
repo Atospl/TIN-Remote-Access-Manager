@@ -4,8 +4,9 @@
 using namespace std;
 
 int main() {
+    Server::setDefaultPort(8080);
     Server server = Server::getServer();
-    cout << "Hello, World, I'm " << server.getName() << "!" << endl;
+    cout << "Hello, World, I'm " << "!" << endl;
     server.runServer();
     return 0;
 }
