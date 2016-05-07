@@ -6,10 +6,14 @@
 #include "Session.h"
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <openssl/applink.c>
+#include <openssl/bio.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
 #include <netdb.h>
 #include <iostream>
 #include <unistd.h>
-#include <arpa/inet.h>
+#include <arpa/inet.h>s
 #include <thread>
 
 using namespace std;
@@ -55,6 +59,8 @@ bool Server::setMaxWaitingConns(int cap) {
 }
 
 void Server::prepare() {
+    initializeSSL();
+
     int status, enable = 1;
 
     // faza tworzenia gniazda
@@ -93,22 +99,11 @@ void Server::listenForClients() {
     }
 
     throw ServerException(ServerException::ErrorCode::ACCEPT_FAILURE);
-
-//    socketDescriptor = accept(serverSocket, (sockaddr*) 0, (socklen_t *) 0);
-//    if (socketDescriptor < 0) {
-//        cout << "Niech cie, accepcie" << endl;
-//        return;
-//    }
-//    char* buffer;
-//    buffer = new char[1024];
-//    cout << "Weszlo5" << endl;
-//    status = read(socketDescriptor, buffer, 1024);
-//    if (status < 0) {
-//        cout << "Niech cie, recvie";
-//        close(socketDescriptor);
-//        close(serverSocket);
-//        return;
-//    }
-//    cout << "Wiadomosc: " << buffer << endl;
-//    delete[] buffer;
 }
+
+void Server::initializeSSL() {
+    SSL_load_error_strings();
+    SSL_library_init();
+    OpenSSL_add_all_algorithms();
+}
+

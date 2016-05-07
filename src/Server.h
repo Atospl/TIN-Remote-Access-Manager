@@ -25,6 +25,10 @@ private:
     // przygotuj serwer pod przyjmowanie klientów
     void prepare();
 
+    // initialize openSSL
+    void initializeSSL();
+    //
+
     static bool running;
     static int port;
     static int maxWaitingConns;
