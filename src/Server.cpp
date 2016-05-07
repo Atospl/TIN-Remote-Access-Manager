@@ -6,14 +6,12 @@
 #include "Session.h"
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <openssl/applink.c>
-#include <openssl/bio.h>
-#include <openssl/ssl.h>
-#include <openssl/err.h>
+//#include <openssl/applink.c>
+
 #include <netdb.h>
 #include <iostream>
 #include <unistd.h>
-#include <arpa/inet.h>s
+#include <arpa/inet.h>
 #include <thread>
 
 using namespace std;
@@ -106,4 +104,16 @@ void Server::initializeSSL() {
     SSL_library_init();
     OpenSSL_add_all_algorithms();
 }
+
+void Server::initializeSSL_CTX() {
+    sslctx = SSL_CTX_new(SSLv23_server_method());
+    // create new key every time
+    SSL_CTX_set_options(sslctx, SSL_OP_SINGLE_DH_USE);
+    // set up server certificate file
+    certfd = SSL_CTX_use_certificate_file(sslctx, certPath, SSL_FILETYPE_PEM);
+    // set up server private key file
+    keyfd = SSL_CTX_use_PrivateKey_file(sslctx, keyPath, SSL_FILETYPE_PEM);
+}
+
+
 

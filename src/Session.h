@@ -5,14 +5,21 @@
 #ifndef TIN_REMOTE_ACCESS_MANAGER_SESSION_H
 #define TIN_REMOTE_ACCESS_MANAGER_SESSION_H
 
+#include <iostream>
+#include <openssl/bio.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+
+using namespace std;
 
 class Session {
-private:
-    int socket;
-    int ip4Address;
 public:
     Session(int s, int adr) : socket(s), ip4Address(adr) {};
     void run();
+
+private:
+    int socket;
+    int ip4Address;
 };
 
 
