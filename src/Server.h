@@ -7,29 +7,21 @@
 
 class Server {
 public:
-
     // zmienia domyślny port dla serwera
     static bool setDefaultPort(int);
-
     // zmienia liczbę możliwych oczekujących połączeń
     static bool setMaxWaitingConns(int);
-
     // pobierz instancję serwera (singleton)
     static Server & getServer();
-
     // uruchom serwer
     void runServer();
-
     ~Server();
 
 private:
-
     // zablokowany konstruktor domyślny (singleton)
     Server(){};
-
     // nasłuchuj i twórz wątki
     void listenForClients();
-
     // przygotuj serwer pod przyjmowanie klientów
     void prepare();
 
