@@ -50,8 +50,8 @@ private:
     int certfd;
     int keyfd;
 
-    static constexpr char *certPath = ".ssl/cert.pem";
-    static constexpr char *keyPath = ".ssl/key.pem";
+    static constexpr char *certPath = (char*)".ssl/cert.pem";
+    static constexpr char *keyPath = (char*)".ssl/key.pem";
 
 
     struct ServerException {
