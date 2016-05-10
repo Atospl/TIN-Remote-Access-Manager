@@ -10,13 +10,10 @@
 #include "Session.h"
 
 void Session::run() {
-
-
-
-//    char buf[20];
-//    std::cout << "Hello! Incoming connection from: " << inet_ntop(AF_INET, &ip4Address, buf, 100) << std::endl;
-//    close(socket);
-//    delete this;
+    char buf[20];
+    std::cout << "Hello! Incoming connection from: " << inet_ntop(AF_INET, &ip4Address, buf, 20) << std::endl;
+    close(socket);
+    delete this;
 }
 
 

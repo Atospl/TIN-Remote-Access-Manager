@@ -35,7 +35,22 @@ void Server::runServer() {
         prepare();
         listenForClients();
     } catch (ServerException e) {
-        cerr << "FAILURE. Code" << e.errorCode << endl;
+        cerr << "FAILURE. Code ";
+        switch (e.errorCode) {
+            case ServerException::ErrorCode::SOCKET_FAILURE:
+                cerr << "Socket creation failure";
+                break;
+            case ServerException::ErrorCode::BIND_FAILURE:
+                cerr << "Socket binding failure";
+                break;
+            case ServerException::ErrorCode::LISTEN_FAILURE:
+                cerr << "Making socket passive failure";
+                break;
+            case ServerException::ErrorCode::ACCEPT_FAILURE:
+                cerr << "Connection acceptance failure";
+                break;
+        }
+        cerr << endl;
     }
     close (serverSocket);
 }
@@ -78,7 +93,7 @@ void Server::prepare() {
         throw ServerException(ServerException::ErrorCode::BIND_FAILURE);
 
     // przerobienie gniazda na pasywne (serwer)
-    status = listen(serverSocket, 5);
+    status = listen(serverSocket, maxWaitingConns);
     if (status < 0)
         throw ServerException(ServerException::ErrorCode::LISTEN_FAILURE);
 }
