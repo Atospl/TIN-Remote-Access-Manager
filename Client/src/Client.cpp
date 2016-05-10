@@ -61,7 +61,7 @@ void Client::connectWithMainServer(){
         prepare();
         sendData();
     } catch (ClientException e) {
-        cerr << "FAILURE. Code" << e.errorCode << endl;
+        cerr << "FAILURE. Source: " << e.errorCode << endl;
     }
     close (clientSocket);
 }

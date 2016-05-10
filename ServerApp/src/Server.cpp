@@ -144,7 +144,7 @@ void Server::initializeSSL_CTX() {
 void Server::handleMessage(Message message) {
     switch (message.messageType){
         case Message::MessageType::LOGGING:{
-            cout<<"Logging data"<<endl;
+            cout<<"LOGGING"<<endl;
             cout<<"login: "<<message.messageData.loggingMessage.login<<endl;
             cout<<"password: "<<message.messageData.loggingMessage.password<<endl;
             break;
