@@ -5,6 +5,7 @@ using namespace std;
 
 int main() {
     Server::setDefaultPort(8080);
+    Server::setMaxWaitingConns(10);
     Server server = Server::getServer();
     cout << "Hello, World, I'm alive!" << endl;
     server.runServer();

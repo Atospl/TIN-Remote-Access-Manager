@@ -18,7 +18,7 @@ using namespace std;
 
 bool Server::running = false;
 int Server::port = 8080;
-int Server::maxWaitingConns = 100;
+int Server::maxWaitingConns = 10;
 
 Server::~Server() {
     if (running)
@@ -35,7 +35,7 @@ void Server::runServer() {
         prepare();
         listenForClients();
     } catch (ServerException e) {
-        cerr << "FAILURE. Code ";
+        cerr << "FAILURE. Source: ";
         switch (e.errorCode) {
             case ServerException::ErrorCode::SOCKET_FAILURE:
                 cerr << "Socket creation failure";
@@ -101,7 +101,7 @@ void Server::prepare() {
 void Server::listenForClients() {
     int socket;
     sockaddr_in address_info;
-    socklen_t data_length;
+    socklen_t data_length = sizeof(sockaddr_in);
 
     // czekaj na kolejne połączenia
     while (0 < (socket = accept(serverSocket, (sockaddr*)&address_info, &data_length)) ) {
@@ -110,7 +110,7 @@ void Server::listenForClients() {
         thread sessionThread(&Session::run, session); // utwórz wątek dla nowego połączenia
         sessionThread.join(); // uruchom wątek
     }
-
+    cerr << errno << endl;
     throw ServerException(ServerException::ErrorCode::ACCEPT_FAILURE);
 }
 
