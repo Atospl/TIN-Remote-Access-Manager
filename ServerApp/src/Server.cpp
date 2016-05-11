@@ -4,6 +4,7 @@
 
 #include "Server.h"
 #include "Session.h"
+#include "../../Shared/Message.h"
 #include <sys/types.h>
 #include <sys/socket.h>
 //#include <openssl/applink.c>
@@ -103,10 +104,20 @@ void Server::listenForClients() {
     sockaddr_in address_info;
     socklen_t data_length = sizeof(sockaddr_in);
 
+    int rval;
+    Message buf;
+
     // czekaj na kolejne połączenia
     while (0 < (socket = accept(serverSocket, (sockaddr*)&address_info, &data_length)) ) {
         Session * session;
         session = new Session(socket, address_info.sin_addr.s_addr);
+    //odczytaj Message od klienta
+        if ((rval = read(socket,&buf, sizeof (Message))) == -1)
+            perror("reading stream message");
+        if (rval == 0)
+            printf("Ending connection\n");
+        handleMessage(buf);
+
         thread sessionThread(&Session::run, session); // utwórz wątek dla nowego połączenia
         sessionThread.join(); // uruchom wątek
     }
@@ -130,5 +141,44 @@ void Server::initializeSSL_CTX() {
     keyfd = SSL_CTX_use_PrivateKey_file(sslctx, keyPath, SSL_FILETYPE_PEM);
 }
 
-
+void Server::handleMessage(Message message) {
+    switch (message.messageType){
+        case Message::MessageType::LOGGING:{
+            cout<<"Logging data"<<endl;
+            cout<<"login: "<<message.messageData.loggingMessage.login<<endl;
+            cout<<"password: "<<message.messageData.loggingMessage.password<<endl;
+            break;
+        }
+        case Message::MessageType::BOOKING:{
+            cout<<"BOOKING"<<endl;
+            cout<<"id: "<<message.messageData.bookingMessage.id<<endl;
+            cout<<"data: "<<message.messageData.bookingMessage.data<<endl;
+            break;
+        }
+        case Message::MessageType::ACCESS_REQUEST:{
+            cout<<"ACCESS_REQUEST"<<endl;
+            break;
+        }
+        case Message::MessageType::FAIL:{
+            cout<<"FAIL"<<endl;
+            cout<<"failMessage: "<<message.messageData.failMessage<<endl;
+            break;
+        }
+        case Message::MessageType::SUCCESS:{
+            cout<<"SUCCESS"<<endl;
+            cout<<"successMessage: "<<message.messageData.successMessage<<endl;
+            break;
+        }
+        case Message::MessageType::MACHINE_DATA:{
+            cout<<"MACHINE_DATA"<<endl;
+            cout<<"id: "<<message.messageData.machineDataMessage.id<<endl;
+            cout<<"information: "<<message.messageData.machineDataMessage.information<<endl;
+            break;
+        }
+        case Message::MessageType::BOOKING_LOG:{
+            cout<<"BOOKING_LOG"<<endl;
+            break;
+        }
+    }
+}
 
