@@ -84,15 +84,24 @@ void Client::sendData() {
         case '0':{
             message.messageType = Message::MessageType::LOGGING;
             Message::MessageData::LoggingMessage loggingMessage;
-            strcpy(loggingMessage.login ,"login");
-            strcpy(loggingMessage.password, "password");
+            cout<<"Podaj login"<<endl;
+            char login[32];
+            char password[20];
+            cin >> login;
+            cout<<"Podaj haslo"<<endl;
+            cin >> password;
+            strcpy(loggingMessage.login ,login);
+            strcpy(loggingMessage.password, password);
             message.messageData.loggingMessage = loggingMessage;
             break;
         }
         case '1':{
             message.messageType = Message::MessageType::BOOKING;
             Message::MessageData::BookingMessage bookingMessage;
-            bookingMessage.id = 666;
+            cout<<"Podaj id"<<endl;
+            uint32_t id;
+            cin >> id;
+            bookingMessage.id = id;
             time(&bookingMessage.data);
             message.messageData.bookingMessage = bookingMessage;
             break;
@@ -103,28 +112,36 @@ void Client::sendData() {
         }
         case '3':{
             message.messageType = Message::MessageType::FAIL;
-            strcpy(message.messageData.failMessage ,"failMessage");
+            cout<<"Podaj wiadomosc bledu"<<endl;
+            char failMessage[64];
+            cin >> failMessage;
+            strcpy(message.messageData.failMessage ,failMessage);
             break;
         }
         case '4':{
             message.messageType = Message::MessageType::SUCCESS;
-            strcpy(message.messageData.successMessage ,"successMessage");
+            cout<<"Podaj wiadomosc sukcesu"<<endl;
+            char successMessage[64];
+            cin >> successMessage;
+            strcpy(message.messageData.successMessage ,successMessage);
             break;
         }
         case '5':{
             message.messageType = Message::MessageType::MACHINE_DATA;
             Message::MessageData::MachineDataMessage machineDataMessage;
-            strcpy(machineDataMessage.information ,"information");
-            machineDataMessage.id = 666;
-            message.messageData.machineDataMessage = machineDataMessage;
+            cout<<"Podaj id"<<endl;
+            uint32_t id;
+            cin >> id;
+            cout<<"Podaj informacje"<<endl;
+            char information[32];
+            cin >> information;
+            strcpy(machineDataMessage.information ,information);
+            machineDataMessage.id = id;
+            message.messageData.machineDataMessage  = machineDataMessage;
             break;
         }
         case '6':{
             message.messageType = Message::MessageType::BOOKING_LOG;
-            Message::MessageData::MachineDataMessage machineDataMessage;
-            machineDataMessage.id = 8;
-            strcpy(machineDataMessage.information, "information");
-            message.messageData.machineDataMessage = machineDataMessage;
             break;
         }
     }
