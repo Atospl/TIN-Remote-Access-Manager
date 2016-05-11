@@ -10,7 +10,6 @@
 #include <openssl/bio.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
-#include "../../Shared/Message.h"
 
 
 using namespace std;
@@ -39,7 +38,6 @@ private:
     void initializeSSL();
     // initializes SSL conntext parameters
     void initializeSSL_CTX();
-    void handleMessage(Message message);
 
     static bool running;
     static int port;
