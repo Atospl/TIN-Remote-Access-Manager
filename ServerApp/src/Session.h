@@ -6,6 +6,7 @@
 #define TIN_REMOTE_ACCESS_MANAGER_SESSION_H
 
 #include <iostream>
+#include "../../Shared/Message.h"
 #include <openssl/bio.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -24,6 +25,9 @@ private:
     void initializeSSLBIO();
     // performs server-side handshake
     void SSLHandshake();
+
+    //Handles client's message
+    void handleMessage(Message message);
 
     int socket;
     int ip4Address;

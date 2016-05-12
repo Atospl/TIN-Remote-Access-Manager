@@ -186,6 +186,12 @@ void Client::initializeSSL_CTX() {
         exit(1);
     }
 
+    /* Load trusted CA. */
+    if (!SSL_CTX_load_verify_locations(sslctx, caCertPath, NULL)) {
+        ERR_print_errors_fp(stderr);
+        exit(1);
+    }
+
     ssl = SSL_new(sslctx);
 }
 

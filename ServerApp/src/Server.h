@@ -53,8 +53,9 @@ private:
     int certfd;
     int keyfd;
 
-    static constexpr char *certPath = (char*)"/home/praca/TIN/TIN-Remote-Access-Manager/ServerApp/.ssl/cert.pem";
-    static constexpr char *keyPath = (char*)"/home/praca/TIN/TIN-Remote-Access-Manager/ServerApp/.ssl/key.pem";
+    static constexpr char *certPath = (char*)"/home/atos/Projects/TIN/TIN-Remote-Access-Manager/ServerApp/.ssl/ca/newcerts/01.pem";
+    static constexpr char *keyPath = (char*)"/home/atos/Projects/TIN/TIN-Remote-Access-Manager/ServerApp/.ssl/serverKey.pem";
+    static constexpr char *caCertPath = (char*)"/home/atos/Projects/TIN/TIN-Remote-Access-Manager/ServerApp/.ssl/ca/cacert.pem";
 
 
     struct ServerException {

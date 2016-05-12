@@ -52,8 +52,9 @@ private:
     int certfd;
     int keyfd;
 
-    static constexpr char *certPath = (char*)"/home/praca/TIN/TIN-Remote-Access-Manager/Client/.ssl/cert.pem";
-    static constexpr char *keyPath = (char*)"/home/praca/TIN/TIN-Remote-Access-Manager/Client/.ssl/key.pem";
+    static constexpr char *certPath = (char*)"/home/atos/Projects/TIN/TIN-Remote-Access-Manager/Client/.ssl/02.pem";
+    static constexpr char *keyPath = (char*)"/home/atos/Projects/TIN/TIN-Remote-Access-Manager/Client/.ssl/clientKey.pem";
+    static constexpr char *caCertPath = (char*)"/home/atos/Projects/TIN/TIN-Remote-Access-Manager/ServerApp/.ssl/ca/cacert.pem";
 
     struct ClientException {
         enum ErrorCode {
