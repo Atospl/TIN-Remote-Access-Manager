@@ -49,11 +49,12 @@ private:
 
     // SSL parameters
     SSL_CTX *sslctx;
+
     int certfd;
     int keyfd;
 
-    static constexpr char *certPath = (char*)".ssl/cert.pem";
-    static constexpr char *keyPath = (char*)".ssl/key.pem";
+    static constexpr char *certPath = (char*)"/home/praca/TIN/TIN-Remote-Access-Manager/ServerApp/.ssl/cert.pem";
+    static constexpr char *keyPath = (char*)"/home/praca/TIN/TIN-Remote-Access-Manager/ServerApp/.ssl/key.pem";
 
 
     struct ServerException {

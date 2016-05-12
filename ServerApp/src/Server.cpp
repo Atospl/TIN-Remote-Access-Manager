@@ -74,6 +74,7 @@ bool Server::setMaxWaitingConns(int cap) {
 
 void Server::prepare() {
     initializeSSL();
+    initializeSSL_CTX();
 
     int status, enable = 1;
 

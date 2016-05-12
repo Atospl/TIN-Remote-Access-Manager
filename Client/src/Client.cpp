@@ -160,8 +160,8 @@ void Client::sendData() {
             break;
 
     }
-    void * pointer = (void*) &message;
-    if (write( clientSocket, pointer, sizeof (Message) ) == -1)
+    void* pointer = (void*) &message;
+    if (SSL_write(ssl, pointer, sizeof (Message)) == -1)
         perror("writing on stream socket");
 }
 
