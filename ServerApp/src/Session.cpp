@@ -40,6 +40,6 @@ void Session::initializeSSLBIO() {
 void Session::SSLHandshake() {
     if(SSL_accept(ssl) != 1) {
         // @FIXME
-        exit(1);
+        exit(1000);
     }
 }

@@ -64,6 +64,11 @@ void Client::prepare(){
         throw ClientException(ClientException::ErrorCode::CONNECT_FAILURE);
     }
 
+    // perform SSL handshake
+    if(SSL_connect(ssl) != 1) {
+        // @FIXME
+        exit(1000);
+    }
 }
 
 void Client::connectWithMainServer(){

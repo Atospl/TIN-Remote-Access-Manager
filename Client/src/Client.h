@@ -37,6 +37,7 @@ private:
     void initializeSSL_CTX();
     // initialize SSL bio structure
     void initializeSSL_BIO();
+
     int clientSocket;
     static string hostname;
     static bool running;
@@ -51,8 +52,8 @@ private:
     int certfd;
     int keyfd;
 
-    static constexpr char *certPath = (char*)".ssl/cert.pem";
-    static constexpr char *keyPath = (char*)".ssl/key.pem";
+    static constexpr char *certPath = (char*)"/home/praca/TIN/TIN-Remote-Access-Manager/Client/.ssl/cert.pem";
+    static constexpr char *keyPath = (char*)"/home/praca/TIN/TIN-Remote-Access-Manager/Client/.ssl/key.pem";
 
     struct ClientException {
         enum ErrorCode {
