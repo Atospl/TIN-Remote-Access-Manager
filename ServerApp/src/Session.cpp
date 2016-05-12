@@ -11,6 +11,11 @@
 #include "../../Shared/Message.h"
 
 void Session::run() {
+    // perform necessary SSL operations
+    initializeSSLBIO();
+    SSLHandshake();
+
+
     char buf[20];
     std::cout << "Hello! Incoming connection from: " << inet_ntop(AF_INET, &ip4Address, buf, 20) << std::endl;
     Message a;
@@ -25,5 +30,16 @@ void Session::run() {
     delete this;
 }
 
+void Session::initializeSSLBIO() {
+    bio = BIO_new(BIO_s_socket());
+    BIO_set_fd(bio, socket, BIO_NOCLOSE);
+    SSL_set_bio(ssl, bio, bio);
+}
 
 
+void Session::SSLHandshake() {
+    if(SSL_accept(ssl) != 1) {
+        // @FIXME
+        exit(1);
+    }
+}

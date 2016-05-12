@@ -48,7 +48,6 @@ private:
     int serverSocket;
 
     // SSL parameters
-    SSL *ssl;
     SSL_CTX *sslctx;
     int certfd;
     int keyfd;

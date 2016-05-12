@@ -5,6 +5,10 @@
 #include "Client.h"
 #include "../../Shared/Message.h"
 
+#include <openssl/bio.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <string>
@@ -15,6 +19,7 @@
 #include <thread>
 #include <cstring>
 #include <climits>
+
 
 using namespace std;
 
@@ -36,6 +41,11 @@ void Client::runClient() {
 }
 
 void Client::prepare(){
+    // Initialize SSL configuration and variables
+    initializeSSL();
+    initializeSSL_CTX();
+    initializeSSL_BIO();
+
     cout<<"PREPARE"<<endl;
     clientSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (clientSocket < 0)
@@ -81,7 +91,7 @@ void Client::sendData() {
     c = cin.get();
     cin.ignore(INT_MAX,'\n');
     switch (c){
-        case '0':{
+        case '0':
             message.messageType = Message::MessageType::LOGGING;
             Message::MessageData::LoggingMessage loggingMessage;
             cout<<"Podaj login"<<endl;
@@ -94,8 +104,8 @@ void Client::sendData() {
             strcpy(loggingMessage.password, password);
             message.messageData.loggingMessage = loggingMessage;
             break;
-        }
-        case '1':{
+
+        case '1':
             message.messageType = Message::MessageType::BOOKING;
             Message::MessageData::BookingMessage bookingMessage;
             cout<<"Podaj id"<<endl;
@@ -105,32 +115,32 @@ void Client::sendData() {
             time(&bookingMessage.data);
             message.messageData.bookingMessage = bookingMessage;
             break;
-        }
-        case '2':{
+
+        case '2':
             message.messageType = Message::MessageType::ACCESS_REQUEST;
             break;
-        }
-        case '3':{
+
+        case '3':
             message.messageType = Message::MessageType::FAIL;
             cout<<"Podaj wiadomosc bledu"<<endl;
             char failMessage[64];
             cin >> failMessage;
             strcpy(message.messageData.failMessage ,failMessage);
             break;
-        }
-        case '4':{
+
+        case '4':
             message.messageType = Message::MessageType::SUCCESS;
             cout<<"Podaj wiadomosc sukcesu"<<endl;
             char successMessage[64];
             cin >> successMessage;
             strcpy(message.messageData.successMessage ,successMessage);
             break;
-        }
-        case '5':{
+
+        case '5':
             message.messageType = Message::MessageType::MACHINE_DATA;
             Message::MessageData::MachineDataMessage machineDataMessage;
             cout<<"Podaj id"<<endl;
-            uint32_t id;
+            //uint32_t id;
             cin >> id;
             cout<<"Podaj informacje"<<endl;
             char information[32];
@@ -139,15 +149,44 @@ void Client::sendData() {
             machineDataMessage.id = id;
             message.messageData.machineDataMessage  = machineDataMessage;
             break;
-        }
-        case '6':{
+
+        case '6':
             message.messageType = Message::MessageType::BOOKING_LOG;
             break;
-        }
+
     }
     void * pointer = (void*) &message;
     if (write( clientSocket, pointer, sizeof (Message) ) == -1)
         perror("writing on stream socket");
+}
+
+void Client::initializeSSL() {
+    SSL_load_error_strings();
+    SSL_library_init();
+    OpenSSL_add_all_algorithms();
+
+}
+
+void Client::initializeSSL_CTX() {
+    sslctx = SSL_CTX_new(SSLv23_client_method());
+
+    // Load OpenSSL cerrificate file
+    if(SSL_CTX_use_certificate_file(sslctx, certPath, SSL_FILETYPE_PEM) <= 0){
+        ERR_print_errors_fp(stderr);
+        exit(1);
+    }
+    // Load OpenSSL Private Key
+    if(SSL_CTX_use_PrivateKey_file(sslctx, keyPath, SSL_FILETYPE_PEM) <= 0){
+        ERR_print_errors_fp(stderr);
+        exit(1);
+    }
+
+    ssl = SSL_new(sslctx);
+}
+
+void Client::initializeSSL_BIO() {
+    bio = BIO_new_socket(clientSocket, BIO_NOCLOSE);
+    SSL_set_bio(ssl, bio, bio);
 }
 
 bool Client::setServerPortAndName(int p, string name){

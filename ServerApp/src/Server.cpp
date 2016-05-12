@@ -110,7 +110,7 @@ void Server::listenForClients() {
     // czekaj na kolejne połączenia
     while (0 < (socket = accept(serverSocket, (sockaddr*)&address_info, &data_length)) ) {
         Session * session;
-        session = new Session(socket, address_info.sin_addr.s_addr);
+        session = new Session(socket, address_info.sin_addr.s_addr, sslctx);
         //odczytaj Message od klienta
         if ((rval = read(socket,&buf, sizeof (Message))) == -1)
             perror("reading stream message");
@@ -136,9 +136,15 @@ void Server::initializeSSL_CTX() {
     // create new key every time
     SSL_CTX_set_options(sslctx, SSL_OP_SINGLE_DH_USE);
     // set up server certificate file
-    certfd = SSL_CTX_use_certificate_file(sslctx, certPath, SSL_FILETYPE_PEM);
+    if(SSL_CTX_use_certificate_file(sslctx, certPath, SSL_FILETYPE_PEM) <= 0){
+        ERR_print_errors_fp(stderr);
+        exit(1);
+    }
     // set up server private key file
-    keyfd = SSL_CTX_use_PrivateKey_file(sslctx, keyPath, SSL_FILETYPE_PEM);
+    if(SSL_CTX_use_PrivateKey_file(sslctx, keyPath, SSL_FILETYPE_PEM) <= 0){
+        ERR_print_errors_fp(stderr);
+        exit(1);
+    }
 }
 
 void Server::handleMessage(Message message) {

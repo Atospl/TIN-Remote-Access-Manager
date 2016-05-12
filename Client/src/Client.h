@@ -5,6 +5,9 @@
 #ifndef CLIENT_CLIENT_H
 #define CLIENT_CLIENT_H
 
+#include <openssl/bio.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
 #include <iostream>
 #include <string>
 #include <sys/socket.h>
@@ -28,13 +31,28 @@ private:
     // przygotuj klienta
     void prepare();
     void sendData();
-
+    // initialize openSSL library
+    void initializeSSL();
+    // initialize SSL context
+    void initializeSSL_CTX();
+    // initialize SSL bio structure
+    void initializeSSL_BIO();
     int clientSocket;
     static string hostname;
     static bool running;
     static int port;
     struct sockaddr_in server_addr;
     struct hostent *server_hostent;
+
+    // SSL parameters
+    SSL_CTX *sslctx;
+    SSL *ssl;
+    BIO *bio;
+    int certfd;
+    int keyfd;
+
+    static constexpr char *certPath = (char*)".ssl/cert.pem";
+    static constexpr char *keyPath = (char*)".ssl/key.pem";
 
     struct ClientException {
         enum ErrorCode {
@@ -45,16 +63,6 @@ private:
         ClientException(ErrorCode code) : errorCode(code) {};
     };
 };
-
-
-
-
-
-
-
-
-
-
 
 
 
