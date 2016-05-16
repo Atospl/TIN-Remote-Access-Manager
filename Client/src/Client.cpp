@@ -24,7 +24,7 @@
 using namespace std;
 
 bool Client::running = false;
-int Client::port = 8080;
+int Client::port = 8765;
 string Client::hostname = "localhost";
 
 Client::~Client() {
@@ -44,7 +44,6 @@ void Client::prepare(){
     // Initialize SSL configuration and variables
     initializeSSL();
     initializeSSL_CTX();
-    initializeSSL_BIO();
 
     cout<<"PREPARE"<<endl;
     clientSocket = socket(AF_INET, SOCK_STREAM, 0);
@@ -60,13 +59,14 @@ void Client::prepare(){
 
     server_addr.sin_port = htons(port);
 
-    if (connect(clientSocket, (struct sockaddr *) &server_addr, sizeof server_addr) == -1) {
+    if (connect(clientSocket, (struct sockaddr *) &server_addr, sizeof server_addr) != 0) {
         throw ClientException(ClientException::ErrorCode::CONNECT_FAILURE);
     }
 
-    // perform SSL handshake
-    if(SSL_connect(ssl) != 1) {
-        // @FIXME
+
+    initializeSSL_BIO();
+    if(SSL_connect(ssl) == -1) {
+        ERR_print_errors_fp(stderr);
         exit(1000);
     }
 }
@@ -161,20 +161,25 @@ void Client::sendData() {
 
     }
     void* pointer = (void*) &message;
-    if (SSL_write(ssl, pointer, sizeof (Message)) == -1)
-        perror("writing on stream socket");
+    if (SSL_write(ssl, pointer, sizeof (Message)) == 0)
+        ERR_print_errors_fp(stderr);
 }
 
 void Client::initializeSSL() {
-    SSL_load_error_strings();
     SSL_library_init();
+
+    SSL_load_error_strings();
     OpenSSL_add_all_algorithms();
 
 }
 
 void Client::initializeSSL_CTX() {
-    sslctx = SSL_CTX_new(SSLv23_client_method());
-
+    sslctx = SSL_CTX_new(SSLv3_client_method());
+    if(sslctx == NULL)
+    {
+        ERR_print_errors_fp(stderr);
+        exit(1);
+    }
     // Load OpenSSL cerrificate file
     if(SSL_CTX_use_certificate_file(sslctx, certPath, SSL_FILETYPE_PEM) <= 0){
         ERR_print_errors_fp(stderr);
@@ -186,18 +191,18 @@ void Client::initializeSSL_CTX() {
         exit(1);
     }
 
-    /* Load trusted CA. */
-    if (!SSL_CTX_load_verify_locations(sslctx, caCertPath, NULL)) {
-        ERR_print_errors_fp(stderr);
-        exit(1);
+    /* verify private key */
+    if (!SSL_CTX_check_private_key(sslctx))
+    {
+        fprintf(stderr, "Private key does not match the public certificate\n");
+        abort();
     }
 
     ssl = SSL_new(sslctx);
 }
 
 void Client::initializeSSL_BIO() {
-    bio = BIO_new_socket(clientSocket, BIO_NOCLOSE);
-    SSL_set_bio(ssl, bio, bio);
+    SSL_set_fd(ssl, clientSocket);
 }
 
 bool Client::setServerPortAndName(int p, string name){

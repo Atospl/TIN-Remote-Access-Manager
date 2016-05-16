@@ -19,10 +19,8 @@ void Session::run() {
     Message buf;
 
     //odczytaj Message od klienta
-    if ((rval = SSL_read(ssl, &buf, sizeof (Message) - 1)) == -1)
-        perror("reading stream message");
-    if (rval == 0)
-        printf("Ending connection\n");
+    if ((rval = SSL_read(ssl, &buf, sizeof (Message) - 1)) == 0)
+        ERR_print_errors_fp(stderr);
     handleMessage(buf);
 
     char buff[20];
@@ -35,20 +33,19 @@ void Session::run() {
     a.messageData.loggingMessage = loggingMessage;
     std::cout << "Struct has been made and destroyed!" <<endl;
 
-    close(socket);
+    close(clientSocket);
     delete this;
 }
 
 void Session::initializeSSLBIO() {
-    bio = BIO_new(BIO_s_socket());
-    BIO_set_fd(bio, socket, BIO_NOCLOSE);
-    SSL_set_bio(ssl, bio, bio);
+    SSL_set_fd(ssl, clientSocket);
 }
 
 
 void Session::SSLHandshake() {
-    if(SSL_accept(ssl) != 1) {
-        // @FIXME
+//    SSL_set_accept_state(ssl);
+    if(SSL_accept(ssl) == -1) {
+        ERR_print_errors_fp(stderr);
         exit(1000);
     }
 }

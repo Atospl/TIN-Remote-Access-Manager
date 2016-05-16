@@ -4,7 +4,7 @@
 using namespace std;
 
 int main() {
-    Server::setDefaultPort(8080);
+    Server::setDefaultPort(8765);
     Server::setMaxWaitingConns(10);
     Server server = Server::getServer();
     cout << "Hello, World, I'm alive!" << endl;

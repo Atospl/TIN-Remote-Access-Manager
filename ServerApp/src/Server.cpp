@@ -7,7 +7,6 @@
 #include "../../Shared/Message.h"
 #include <sys/types.h>
 #include <sys/socket.h>
-//#include <openssl/applink.c>
 
 #include <netdb.h>
 #include <iostream>
@@ -18,12 +17,13 @@
 using namespace std;
 
 bool Server::running = false;
-int Server::port = 8080;
+int Server::port = 8765;
 int Server::maxWaitingConns = 10;
 
 Server::~Server() {
     if (running)
         close(serverSocket);
+    SSL_CTX_free(sslctx);
 }
 
 Server &Server::getServer() {
@@ -101,26 +101,20 @@ void Server::prepare() {
 }
 
 void Server::listenForClients() {
-    int socket;
+    int clientSocket;
     sockaddr_in address_info;
     socklen_t data_length = sizeof(sockaddr_in);
 
     Message buf;
 
     // czekaj na kolejne połączenia
-    while (0 < (socket = accept(serverSocket, (sockaddr*)&address_info, &data_length)) ) {
+    while (0 < (clientSocket = accept(serverSocket, (sockaddr*)&address_info, &data_length)) ) {
         Session * session;
-        session = new Session(socket, address_info.sin_addr.s_addr, sslctx);
-        session->run();
-//        //odczytaj Message od klienta
-//        if ((rval = read(socket,&buf, sizeof (Message))) == -1)
-//            perror("reading stream message");
-//        if (rval == 0)
-//            printf("Ending connection\n");
-//        handleMessage(buf);
+        session = new Session(clientSocket, serverSocket, address_info.sin_addr.s_addr, sslctx);
 
-//        thread sessionThread(&Session::run, session); // utwórz wątek dla nowego połączenia
-//        sessionThread.join(); // uruchom wątek
+        //odczytaj Message od klienta
+        thread sessionThread(&Session::run, session); // utwórz wątek dla nowego połączenia
+        sessionThread.join(); // uruchom wątek
     }
     cerr << errno << endl;
     throw ServerException(ServerException::ErrorCode::ACCEPT_FAILURE);
@@ -133,9 +127,21 @@ void Server::initializeSSL() {
 }
 
 void Server::initializeSSL_CTX() {
-    sslctx = SSL_CTX_new(SSLv23_server_method());
+    sslctx = SSL_CTX_new(SSLv3_server_method());
     // create new key every time
     SSL_CTX_set_options(sslctx, SSL_OP_SINGLE_DH_USE);
+    SSL_CTX_set_verify(sslctx, SSL_VERIFY_NONE, NULL);
+
+    /* Load trusted CA. */
+    if (SSL_CTX_load_verify_locations(sslctx, NULL, caCertPath) != 1) {
+        ERR_print_errors_fp(stderr);
+        exit(1);
+    }
+
+    if(SSL_CTX_set_default_verify_paths(sslctx) != 1){
+        ERR_print_errors_fp(stderr);
+        exit(1);
+    }
     // set up server certificate file
     if(SSL_CTX_use_certificate_file(sslctx, certPath, SSL_FILETYPE_PEM) <= 0){
         ERR_print_errors_fp(stderr);
@@ -147,52 +153,13 @@ void Server::initializeSSL_CTX() {
         exit(1);
     }
 
-    /* Load trusted CA. */
-    if (!SSL_CTX_load_verify_locations(sslctx, caCertPath, NULL)) {
-        ERR_print_errors_fp(stderr);
-        exit(1);
+    /* verify private key */
+    if (!SSL_CTX_check_private_key(sslctx))
+    {
+        fprintf(stderr, "Private key does not match the public certificate\n");
+        abort();
     }
-}
 
-//void Server::handleMessage(Message message) {
-//    switch (message.messageType){
-//        case Message::MessageType::LOGGING:{
-//            cout<<"LOGGING"<<endl;
-//            cout<<"login: "<<message.messageData.loggingMessage.login<<endl;
-//            cout<<"password: "<<message.messageData.loggingMessage.password<<endl;
-//            break;
-//        }
-//        case Message::MessageType::BOOKING:{
-//            cout<<"BOOKING"<<endl;
-//            cout<<"id: "<<message.messageData.bookingMessage.id<<endl;
-//            cout<<"data: "<<message.messageData.bookingMessage.data<<endl;
-//            break;
-//        }
-//        case Message::MessageType::ACCESS_REQUEST:{
-//            cout<<"ACCESS_REQUEST"<<endl;
-//            break;
-//        }
-//        case Message::MessageType::FAIL:{
-//            cout<<"FAIL"<<endl;
-//            cout<<"failMessage: "<<message.messageData.failMessage<<endl;
-//            break;
-//        }
-//        case Message::MessageType::SUCCESS:{
-//            cout<<"SUCCESS"<<endl;
-//            cout<<"successMessage: "<<message.messageData.successMessage<<endl;
-//            break;
-//        }
-//        case Message::MessageType::MACHINE_DATA:{
-//            cout<<"MACHINE_DATA"<<endl;
-//            cout<<"id: "<<message.messageData.machineDataMessage.id<<endl;
-//            cout<<"information: "<<message.messageData.machineDataMessage.information<<endl;
-//            break;
-//        }
-//        case Message::MessageType::BOOKING_LOG:{
-//            cout<<"BOOKING_LOG"<<endl;
-//            break;
-//        }
-//    }
-//}
+}
 
 

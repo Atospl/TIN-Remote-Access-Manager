@@ -10,14 +10,23 @@
 #include <openssl/bio.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+#include "Session.h"
 
 using namespace std;
 
 class Session {
 public:
-    Session(int s, int adr, SSL_CTX *ctx) : socket(s), ip4Address(adr) {
+    Session(int cls, int srvs, int adr, SSL_CTX *ctx) : clientSocket(cls), serverSocket(srvs), ip4Address(adr) {
         ssl = SSL_new(ctx);
     };
+    ~Session() {
+        SSL_free(ssl);
+        close(clientSocket);
+    }
     void run();
 
 private:
@@ -29,11 +38,11 @@ private:
     //Handles client's message
     void handleMessage(Message message);
 
-    int socket;
+    int clientSocket;
+    int serverSocket;
     int ip4Address;
     // SSL parameters
     SSL *ssl;
-    BIO *bio;
 };
 
 

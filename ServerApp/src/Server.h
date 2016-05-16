@@ -40,8 +40,6 @@ private:
     // initializes SSL conntext parameters
     void initializeSSL_CTX();
 
-    void handleMessage(Message message);
-
     static bool running;
     static int port;
     static int maxWaitingConns;
@@ -53,9 +51,9 @@ private:
     int certfd;
     int keyfd;
 
-    static constexpr char *certPath = (char*)"/home/atos/Projects/TIN/TIN-Remote-Access-Manager/ServerApp/.ssl/ca/newcerts/01.pem";
+    static constexpr char *certPath = (char*)"/home/atos/Projects/TIN/TIN-Remote-Access-Manager/ServerApp/.ssl/serverCert.pem";
     static constexpr char *keyPath = (char*)"/home/atos/Projects/TIN/TIN-Remote-Access-Manager/ServerApp/.ssl/serverKey.pem";
-    static constexpr char *caCertPath = (char*)"/home/atos/Projects/TIN/TIN-Remote-Access-Manager/ServerApp/.ssl/ca/cacert.pem";
+    static constexpr char *caCertPath = (char*)"/home/atos/Projects/TIN/TIN-Remote-Access-Manager/ServerApp/.ssl/cacert.pem";
 
 
     struct ServerException {
