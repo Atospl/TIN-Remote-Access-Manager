@@ -19,7 +19,7 @@ void Session::run() {
     Message buf;
 
     //odczytaj Message od klienta
-    if ((rval = SSL_read(ssl, &buf, sizeof (Message) - 1)) == 0)
+    if ((rval = SSL_read(ssl, &buf, sizeof (Message))) == 0)
         //sprawdzic czy czyta wszystkie bajty
         ERR_print_errors_fp(stderr);
     handleMessage(buf);
