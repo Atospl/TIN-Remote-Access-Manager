@@ -20,18 +20,19 @@ void Session::run() {
 
     //odczytaj Message od klienta
     if ((rval = SSL_read(ssl, &buf, sizeof (Message) - 1)) == 0)
+        //sprawdzic czy czyta wszystkie bajty
         ERR_print_errors_fp(stderr);
     handleMessage(buf);
 
-    char buff[20];
-    std::cout << "Hello! Incoming connection from: " << inet_ntop(AF_INET, &ip4Address, buff, 20) << std::endl;
-    Message a;
-    a.messageType = Message::MessageType::BOOKING;
-    Message::MessageData::LoggingMessage loggingMessage;
-    strcpy(loggingMessage.login, "aaa");
-    strcpy(loggingMessage.password, "bbb");
-    a.messageData.loggingMessage = loggingMessage;
-    std::cout << "Struct has been made and destroyed!" <<endl;
+//    char buff[20];
+//    std::cout << "Hello! Incoming connection from: " << inet_ntop(AF_INET, &ip4Address, buff, 20) << std::endl;
+//    Message a;
+//    a.messageType = Message::MessageType::BOOKING;
+//    Message::MessageData::LoggingMessage loggingMessage;
+//    strcpy(loggingMessage.login, "aaa");
+//    strcpy(loggingMessage.password, "bbb");
+//    a.messageData.loggingMessage = loggingMessage;
+//    std::cout << "Struct has been made and destroyed!" <<endl;
 
     close(clientSocket);
     delete this;

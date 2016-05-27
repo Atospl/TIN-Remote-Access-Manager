@@ -22,7 +22,7 @@ public:
     // zmienia liczbę możliwych oczekujących połączeń
     static bool setMaxWaitingConns(int);
     // pobierz instancję serwera (singleton)
-    static Server & getServer();
+    static Server& getServer();
     // uruchom serwer
     void runServer();
     ~Server();
