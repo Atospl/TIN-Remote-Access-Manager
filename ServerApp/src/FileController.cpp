@@ -54,6 +54,7 @@ machine FileController::getMachine()
     machineFileMutex.unlock();
     // ignore the first line
     getline(str, line);
+
     getline(str, line);
     vector<string> values = getValuesCsv(line);
 

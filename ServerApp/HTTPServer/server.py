@@ -4,6 +4,12 @@ SimpleSecureHTTPServer.py - simple HTTP server supporting SSL.
 usage: python SimpleSecureHTTPServer.py
 '''
 import socket, os
+import csv
+import time
+import hashlib
+import base64
+import uuid
+#import M2Crypto
 from threading import Lock
 from SocketServer import ThreadingMixIn
 from SocketServer import BaseServer
@@ -17,6 +23,36 @@ KEY = 'key.pem'
 
 class UserSessionStore():
     lock = Lock()
+    userSessions = {}
+    
+    def __init__(self):
+        self.importUsers()
+    
+    def importUsers(self):
+        with open('../src/config/clients', 'rb') as clientFile:
+            clientReader = csv.DictReader(clientFile)
+            for row in clientReader:
+                self.userSessions[row['login']] = {'passHash' : row['passHash']}
+                
+    def genSessionID(self, user):
+        """generate unique session id with timeout for an hour"""
+        sessionUID = uuid.uuid1()
+        self.lock.acquire()
+        self.userSessions[user]['sessionID'] = sessionUID
+        self.userSessions[user]['timeout'] = time.time() + 3600
+        self.lock.release()
+        return sessionUID
+    
+    def checkSessionID(self, user, userSID):
+        self.lock.acquire()
+        if self.userSessions[user]['sessionID'] == userSID:
+            self.lock.release()
+            return True
+        else:
+            self.lock.release()
+            return False
+        
+store = UserSessionStore()
     
 
 
@@ -33,6 +69,8 @@ class SecureHTTPServer(HTTPServer):
         
     def shutdown_request(self,request): 
         request.shutdown()
+
+        
 
 class SecureHTTPRequestHandler(SimpleHTTPRequestHandler):
     def setup(self):
@@ -51,13 +89,20 @@ class SecureHTTPRequestHandler(SimpleHTTPRequestHandler):
                 login = value
             elif key == "password":
                 password = value
-        if not signIn(login, password):
+        if not self.signIn(login, password):
             self.send_response(401, "Invalid login/password")
+            self.end_headers()
 
+    def signIn(self, login, password):
+        try:
+            if store.userSessions[login[0]]['passHash'] == hashlib.sha512(password[0]).hexdigest():
+                sessionId = store.genSessionID(login)
+                return True
+            else:
+                return False
+        except:
+            return False
 
-def signIn(login, password):
-    """Checks whether user is signed in"""
-    return False
         
 class HTTPSServerMT(ThreadingMixIn, SecureHTTPServer):
     """Handle requests in separate thread"""
@@ -69,3 +114,7 @@ def test():
 
 if __name__ == '__main__':
     test()
+#    store = UserSessionStore()
+#    print store.userSessions.items()
+#    store.genSessionID('22')
+#    print store.userSessions.items()
