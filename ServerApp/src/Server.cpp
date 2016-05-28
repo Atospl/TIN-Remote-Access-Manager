@@ -130,6 +130,7 @@ void Server::initializeSSL_CTX() {
     // create new key every time
     SSL_CTX_set_options(sslctx, SSL_OP_SINGLE_DH_USE);
     SSL_CTX_set_verify(sslctx, SSL_VERIFY_NONE, NULL);
+    ERR_print_errors_fp(stderr);
 
     /* Load trusted CA. */
     if (SSL_CTX_load_verify_locations(sslctx, NULL, caCertPath) != 1) {

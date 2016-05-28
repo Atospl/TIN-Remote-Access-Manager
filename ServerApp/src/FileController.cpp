@@ -52,7 +52,8 @@ machine FileController::getMachine()
     }
 
     machineFileMutex.unlock();
-
+    // ignore the first line
+    getline(str, line);
     getline(str, line);
     vector<string> values = getValuesCsv(line);
 
@@ -95,7 +96,8 @@ vector<client> FileController::getClients() {
         return clients;
     }
 
-
+    // ignore first line
+    getline(str, line);
     while(getline(str,line))
     {
         vector<string> values = getValuesCsv(line);
@@ -140,8 +142,8 @@ vector<reservation> FileController::getReservations() {
         cout<<"Error opening reservations file"<<endl;
         return reservations;
     }
-
-
+    // ignore first line
+    getline(str, line)
     while(getline(str,line))
     {
         vector<string> values = getValuesCsv(line);
