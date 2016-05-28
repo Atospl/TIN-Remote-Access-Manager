@@ -8,8 +8,8 @@ import csv
 import time
 import hashlib
 import base64
+import Cookie
 import uuid
-#import M2Crypto
 from threading import Lock
 from SocketServer import ThreadingMixIn
 from SocketServer import BaseServer
@@ -81,7 +81,7 @@ class SecureHTTPRequestHandler(SimpleHTTPRequestHandler):
     def do_POST(self):
         """Processes POST requests"""
         print(self.headers)
-        self.send_response(200)
+#        self.send_response(200)
         content_len = int(self.headers.getheader('content-length', 0))
         post_data = urlparse.parse_qs(self.rfile.read(content_len).decode('utf-8'))
         for (key, value) in post_data.iteritems():
@@ -89,18 +89,22 @@ class SecureHTTPRequestHandler(SimpleHTTPRequestHandler):
                 login = value
             elif key == "password":
                 password = value
-        if not self.signIn(login, password):
-            self.send_response(401, "Invalid login/password")
-            self.end_headers()
+        self.signIn(login, password)
+
 
     def signIn(self, login, password):
-        try:
-            if store.userSessions[login[0]]['passHash'] == hashlib.sha512(password[0]).hexdigest():
-                sessionId = store.genSessionID(login)
-                return True
-            else:
-                return False
-        except:
+        """Check if user is registered and send appropriate response"""
+        if store.userSessions[login[0]]['passHash'] == hashlib.sha512(password[0]).hexdigest():
+            sessionId = store.genSessionID(login[0])
+            cookie = Cookie.SimpleCookie()
+            cookie["session-id"] = sessionId
+            self.send_response(200, 'OK')
+            self.wfile.write(cookie.output())
+            self.end_headers()
+            return True
+        else:
+            self.send_response(401, "Invalid login/password")
+            self.end_headers()                
             return False
 
         
