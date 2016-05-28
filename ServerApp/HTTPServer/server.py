@@ -94,6 +94,7 @@ class SecureHTTPRequestHandler(SimpleHTTPRequestHandler):
 
     def signIn(self, login, password):
         """Check if user is registered and send appropriate response"""
+        """@TODO add handling exceptions"""
         if store.userSessions[login[0]]['passHash'] == hashlib.sha512(password[0]).hexdigest():
             sessionId = store.genSessionID(login[0])
             cookie = Cookie.SimpleCookie()
