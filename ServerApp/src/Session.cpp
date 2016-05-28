@@ -24,16 +24,6 @@ void Session::run() {
         ERR_print_errors_fp(stderr);
     handleMessage(buf);
 
-//    char buff[20];
-//    std::cout << "Hello! Incoming connection from: " << inet_ntop(AF_INET, &ip4Address, buff, 20) << std::endl;
-//    Message a;
-//    a.messageType = Message::MessageType::BOOKING;
-//    Message::MessageData::LoggingMessage loggingMessage;
-//    strcpy(loggingMessage.login, "aaa");
-//    strcpy(loggingMessage.password, "bbb");
-//    a.messageData.loggingMessage = loggingMessage;
-//    std::cout << "Struct has been made and destroyed!" <<endl;
-
     close(clientSocket);
     delete this;
 }
@@ -53,39 +43,39 @@ void Session::SSLHandshake() {
 
 void Session::handleMessage(Message message) {
     switch (message.messageType) {
-        case Message::MessageType::LOGGING:
+        case MessageType::LOGGING:
             cout << "LOGGING" << endl;
             cout << "login: " << message.messageData.loggingMessage.login << endl;
             cout << "password: " << message.messageData.loggingMessage.password << endl;
             break;
 
-        case Message::MessageType::BOOKING:
+        case MessageType::BOOKING:
             cout << "BOOKING" << endl;
             cout << "id: " << message.messageData.bookingMessage.id << endl;
             cout << "data: " << message.messageData.bookingMessage.data << endl;
             break;
 
-        case Message::MessageType::ACCESS_REQUEST:
+        case MessageType::ACCESS_REQUEST:
             cout << "ACCESS_REQUEST" << endl;
             break;
 
-        case Message::MessageType::FAIL:
+        case MessageType::FAIL:
             cout << "FAIL" << endl;
             cout << "failMessage: " << message.messageData.failMessage << endl;
             break;
 
-        case Message::MessageType::SUCCESS:
+        case MessageType::SUCCESS:
             cout << "SUCCESS" << endl;
             cout << "successMessage: " << message.messageData.successMessage << endl;
             break;
 
-        case Message::MessageType::MACHINE_DATA:
+        case MessageType::MACHINE_DATA:
             cout << "MACHINE_DATA" << endl;
             cout << "id: " << message.messageData.machineDataMessage.id << endl;
             cout << "information: " << message.messageData.machineDataMessage.information << endl;
             break;
 
-        case Message::MessageType::BOOKING_LOG:
+        case MessageType::BOOKING_LOG:
             cout << "BOOKING_LOG" << endl;
             break;
 

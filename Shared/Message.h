@@ -7,17 +7,18 @@
 
 #include <cstdint>
 #include <ctime>
+enum MessageType {
+    LOGGING = 1,
+    BOOKING = 2,
+    ACCESS_REQUEST = 3,
+    FAIL = 4,
+    SUCCESS = 5,
+    MACHINE_DATA = 6,
+    BOOKING_LOG = 7
+};
 
 struct Message {
-    enum MessageType {
-        LOGGING = 0,
-        BOOKING = 1,
-        ACCESS_REQUEST = 2,
-        FAIL = 3,
-        SUCCESS = 4,
-        MACHINE_DATA = 5,
-        BOOKING_LOG = 6
-    } messageType;
+    MessageType messageType;
 
     union MessageData {
         struct LoggingMessage {

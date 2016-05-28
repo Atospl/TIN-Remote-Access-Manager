@@ -19,8 +19,8 @@ using namespace std;
 class Client {
 public:
     static bool setServerPortAndName(int port, string name);
+    static bool setServerPortAndName();
     static Client & getClient();
-    void connectWithMainServer();
     void runClient();
     ~Client();
 
@@ -30,6 +30,7 @@ private:
 
     // przygotuj klienta
     void prepare();
+    // wyslanie danych
     void sendData();
     // initialize openSSL library
     void initializeSSL();
@@ -52,8 +53,8 @@ private:
     int certfd;
     int keyfd;
 
-    static constexpr char *certPath = (char*)"/home/atos/Projects/TIN/TIN-Remote-Access-Manager/Client/.ssl/clientCert.pem";
-    static constexpr char *keyPath = (char*)"/home/atos/Projects/TIN/TIN-Remote-Access-Manager/Client/.ssl/clientKey.pem";
+    static constexpr char *certPath = (char*)"../.ssl/clientCert.pem";
+    static constexpr char *keyPath = (char*)"../.ssl/clientKey.pem";
 
     struct ClientException {
         enum ErrorCode {
@@ -64,10 +65,5 @@ private:
         ClientException(ErrorCode code) : errorCode(code) {};
     };
 };
-
-
-
-
-
 
 #endif //CLIENT_CLIENT_H
