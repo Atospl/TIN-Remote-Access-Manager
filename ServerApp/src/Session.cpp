@@ -7,8 +7,10 @@
 #include <openssl/bio.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
+#include <openssl/sha.h>
 #include "Session.h"
 #include "../../Shared/Message.h"
+#include "FileController.h"
 
 void Session::run() {
     // perform necessary SSL operations
@@ -83,6 +85,27 @@ void Session::handleMessage(Message message) {
     }
 }
 
-void Session::verifyUser(Message message){
-    write(clientSocket,"I got your message",18);
+bool Session::verifyUser(Message message){
+    vector<client> clients = FileController::getInstance().getClients();
+    unsigned char digest[SHA512_DIGEST_LENGTH];
+
+    /** @TODO SHA512 hash creation - move to separate function */
+    SHA512((unsigned char*)&message.messageData.loggingMessage.password,
+           strlen(message.messageData.loggingMessage.password),
+           (unsigned char*)&digest);
+    char hexDigest[SHA512_DIGEST_LENGTH*2+1];
+    for(int i=0; i < SHA512_DIGEST_LENGTH; ++i)
+        sprintf(&hexDigest[i*2], "%02x", (unsigned int)digest[i]);
+    /***********************************************************/
+
+    for(auto i : clients) {
+        if (i.login == message.messageData.loggingMessage.login)
+            if (i.passHash.compare(hexDigest) == 0) {
+                return true;
+            }
+        else
+            return false;
+    }
+    return false;
+    //SSL_write(ssl, "I got your message",18);
 }

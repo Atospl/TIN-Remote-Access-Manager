@@ -111,7 +111,7 @@ vector<client> FileController::getClients() {
         client.login = values[0];
 
         //if(number(values[1])) sprawdzić czy liczba
-        client.passHash = stoul(values[1]);
+        client.passHash = values[1];
 
         client.salt = stoul(values[2]);
 
@@ -144,7 +144,7 @@ vector<reservation> FileController::getReservations() {
         return reservations;
     }
     // ignore first line
-    getline(str, line)
+    getline(str, line);
     while(getline(str,line))
     {
         vector<string> values = getValuesCsv(line);

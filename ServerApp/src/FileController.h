@@ -13,7 +13,7 @@
 struct client
 {
     std::string login;
-    unsigned long passHash;
+    std::string passHash;
     unsigned long salt;
 };
 

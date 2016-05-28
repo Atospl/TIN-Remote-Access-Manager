@@ -177,7 +177,7 @@ void Client::initializeSSL() {
 }
 
 void Client::initializeSSL_CTX() {
-    sslctx = SSL_CTX_new(SSLv3_client_method());
+    sslctx = SSL_CTX_new(SSLv23_client_method());
     if(sslctx == NULL)
     {
         ERR_print_errors_fp(stderr);
