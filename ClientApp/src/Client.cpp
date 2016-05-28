@@ -28,7 +28,9 @@ int Client::port = 8765;
 string Client::hostname = "localhost";
 
 Client::~Client() {
-    close(clientSocket);
+    if (running)
+        close(clientSocket);
+    SSL_CTX_free(sslctx);
 }
 
 Client &Client::getClient() {
@@ -37,19 +39,35 @@ Client &Client::getClient() {
 }
 
 void Client::runClient() {
-
+    try {
+        prepare();
+        sendData();
+    } catch (ClientException e) {
+        cerr << "FAILURE. Source: ";
+        switch (e.errorCode) {
+            case ClientException::ErrorCode::CONNECT_FAILURE:
+                cerr << "Connect failure";
+                break;
+            case ClientException::ErrorCode::NO_SERVER:
+                cerr << "No server found";
+                break;
+            case ClientException::ErrorCode::SOCKET_FAILURE:
+                cerr << "Socket creation failure";
+                break;
+        }
+        cerr << endl;
+        close(clientSocket);
+    }
 }
 
 void Client::prepare(){
     // Initialize SSL configuration and variables
     initializeSSL();
     initializeSSL_CTX();
-
-    cout<<"PREPARE"<<endl;
     clientSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (clientSocket < 0)
         throw ClientException(ClientException::ErrorCode::SOCKET_FAILURE);
-
+    running = true;
     server_addr.sin_family = AF_INET;
     server_hostent = gethostbyname(hostname.c_str());
     if (server_hostent == (struct hostent *) 0)
@@ -71,33 +89,22 @@ void Client::prepare(){
     }
 }
 
-void Client::connectWithMainServer(){
-    try {
-        prepare();
-        sendData();
-    } catch (ClientException e) {
-        cerr << "FAILURE. Source: " << e.errorCode << endl;
-    }
-    close (clientSocket);
-}
-
 void Client::sendData() {
 
     Message message;
-    char c;
+    int c;
     cout<<"Co chcesz wyslac"<<endl;
-    cout<<"0 - LOGGING"<<endl;
-    cout<<"1 - BOOKING"<<endl;
-    cout<<"2 - ACCESS_REQUEST"<<endl;
-    cout<<"3 - FAIL"<<endl;
-    cout<<"4 - SUCCESS"<<endl;
-    cout<<"5 - MACHINE_DATA"<<endl;
-    cout<<"6 - BOOKING_LOG"<<endl;
-    c = cin.get();
-    cin.ignore(INT_MAX,'\n');
+    cout<<"1 - LOGGING"<<endl;
+    cout<<"2 - BOOKING"<<endl;
+    cout<<"3 - ACCESS_REQUEST"<<endl;
+    cout<<"4 - FAIL"<<endl;
+    cout<<"5 - SUCCESS"<<endl;
+    cout<<"6 - MACHINE_DATA"<<endl;
+    cout<<"7 - BOOKING_LOG"<<endl;
+    cin >> c;
     switch (c){
-        case '0':
-            message.messageType = Message::MessageType::LOGGING;
+        case MessageType::LOGGING:
+            message.messageType = MessageType::LOGGING;
             Message::MessageData::LoggingMessage loggingMessage;
             cout<<"Podaj login"<<endl;
             char login[32];
@@ -110,8 +117,8 @@ void Client::sendData() {
             message.messageData.loggingMessage = loggingMessage;
             break;
 
-        case '1':
-            message.messageType = Message::MessageType::BOOKING;
+        case MessageType::BOOKING:
+            message.messageType = MessageType::BOOKING;
             Message::MessageData::BookingMessage bookingMessage;
             cout<<"Podaj id"<<endl;
             uint32_t id;
@@ -121,31 +128,30 @@ void Client::sendData() {
             message.messageData.bookingMessage = bookingMessage;
             break;
 
-        case '2':
-            message.messageType = Message::MessageType::ACCESS_REQUEST;
+        case MessageType::ACCESS_REQUEST:
+            message.messageType = MessageType::ACCESS_REQUEST;
             break;
 
-        case '3':
-            message.messageType = Message::MessageType::FAIL;
+        case MessageType::FAIL:
+            message.messageType = MessageType::FAIL;
             cout<<"Podaj wiadomosc bledu"<<endl;
             char failMessage[64];
             cin >> failMessage;
             strcpy(message.messageData.failMessage ,failMessage);
             break;
 
-        case '4':
-            message.messageType = Message::MessageType::SUCCESS;
+        case MessageType::SUCCESS:
+            message.messageType = MessageType::SUCCESS;
             cout<<"Podaj wiadomosc sukcesu"<<endl;
             char successMessage[64];
             cin >> successMessage;
             strcpy(message.messageData.successMessage ,successMessage);
             break;
 
-        case '5':
-            message.messageType = Message::MessageType::MACHINE_DATA;
+        case MessageType::MACHINE_DATA:
+            message.messageType = MessageType::MACHINE_DATA;
             Message::MessageData::MachineDataMessage machineDataMessage;
             cout<<"Podaj id"<<endl;
-            //uint32_t id;
             cin >> id;
             cout<<"Podaj informacje"<<endl;
             char information[32];
@@ -155,9 +161,12 @@ void Client::sendData() {
             message.messageData.machineDataMessage  = machineDataMessage;
             break;
 
-        case '6':
-            message.messageType = Message::MessageType::BOOKING_LOG;
+        case MessageType::BOOKING_LOG:
+            message.messageType = MessageType::BOOKING_LOG;
             break;
+        default:
+            cout<<"Nie poprawna wartość"<<endl;
+            return;
 
     }
     void* pointer = (void*) &message;
@@ -212,5 +221,10 @@ bool Client::setServerPortAndName(int p, string name){
     }
     else
         return false;
+    return true;
+}
+
+bool Client::setServerPortAndName(){
+    //todo - pobranie z pliku konfiguracyjnego
     return true;
 }

@@ -19,8 +19,8 @@ using namespace std;
 class Client {
 public:
     static bool setServerPortAndName(int port, string name);
+    static bool setServerPortAndName();
     static Client & getClient();
-    void connectWithMainServer();
     void runClient();
     ~Client();
 
@@ -30,6 +30,7 @@ private:
 
     // przygotuj klienta
     void prepare();
+    // wyslanie danych
     void sendData();
     // initialize openSSL library
     void initializeSSL();
@@ -64,10 +65,5 @@ private:
         ClientException(ErrorCode code) : errorCode(code) {};
     };
 };
-
-
-
-
-
 
 #endif //CLIENT_CLIENT_H

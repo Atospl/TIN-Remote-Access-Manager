@@ -71,6 +71,10 @@ bool Server::setMaxWaitingConns(int cap) {
     return true;
 }
 
+bool Server::setServerPortAndName(){
+    //todo - pobranie z pliku konfiguracyjnego
+    return true;
+}
 void Server::prepare() {
     initializeSSL();
     initializeSSL_CTX();

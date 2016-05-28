@@ -21,6 +21,8 @@ public:
     static bool setDefaultPort(int);
     // zmienia liczbę możliwych oczekujących połączeń
     static bool setMaxWaitingConns(int);
+    // pobranie z pliku konfiguracyjnego
+    static bool setServerPortAndName();
     // pobierz instancję serwera (singleton)
     static Server& getServer();
     // uruchom serwer
