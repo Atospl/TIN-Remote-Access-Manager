@@ -47,6 +47,7 @@ void Session::handleMessage(Message message) {
             cout << "LOGGING" << endl;
             cout << "login: " << message.messageData.loggingMessage.login << endl;
             cout << "password: " << message.messageData.loggingMessage.password << endl;
+            verifyUser(message);
             break;
 
         case MessageType::BOOKING:
@@ -80,4 +81,8 @@ void Session::handleMessage(Message message) {
             break;
 
     }
+}
+
+void Session::verifyUser(Message message){
+    write(clientSocket,"I got your message",18);
 }

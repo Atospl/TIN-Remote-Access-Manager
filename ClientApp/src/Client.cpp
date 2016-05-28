@@ -19,7 +19,7 @@
 #include <thread>
 #include <cstring>
 #include <climits>
-
+#include <unistd.h>
 
 using namespace std;
 
@@ -41,6 +41,7 @@ Client &Client::getClient() {
 void Client::runClient() {
     try {
         prepare();
+        logIn();
         sendData();
     } catch (ClientException e) {
         cerr << "FAILURE. Source: ";
@@ -53,6 +54,13 @@ void Client::runClient() {
                 break;
             case ClientException::ErrorCode::SOCKET_FAILURE:
                 cerr << "Socket creation failure";
+                break;
+            case ClientException::ErrorCode::LOGGING_IN_FAILURE:
+                cerr << "Logging in failure";
+                break;
+            case ClientException::ErrorCode::LOG_OUT:
+                cerr<< "Logging out";
+                logOut();
                 break;
         }
         cerr << endl;
@@ -103,20 +111,6 @@ void Client::sendData() {
     cout<<"7 - BOOKING_LOG"<<endl;
     cin >> c;
     switch (c){
-        case MessageType::LOGGING:
-            message.messageType = MessageType::LOGGING;
-            Message::MessageData::LoggingMessage loggingMessage;
-            cout<<"Podaj login"<<endl;
-            char login[32];
-            char password[20];
-            cin >> login;
-            cout<<"Podaj haslo"<<endl;
-            cin >> password;
-            strcpy(loggingMessage.login ,login);
-            strcpy(loggingMessage.password, password);
-            message.messageData.loggingMessage = loggingMessage;
-            break;
-
         case MessageType::BOOKING:
             message.messageType = MessageType::BOOKING;
             Message::MessageData::BookingMessage bookingMessage;
@@ -227,4 +221,28 @@ bool Client::setServerPortAndName(int p, string name){
 bool Client::setServerPortAndName(){
     //todo - pobranie z pliku konfiguracyjnego
     return true;
+}
+
+void Client::logIn() {
+    Message message;
+    char login[32];
+    message.messageType = MessageType::LOGGING;
+    Message::MessageData::LoggingMessage loggingMessage;
+    cout<<"Podaj login"<<endl;
+    cin.getline(login,32);
+    char *password = getpass("Password: ");
+    strcpy(loggingMessage.login ,login);
+    strcpy(loggingMessage.password, password);
+    message.messageData.loggingMessage = loggingMessage;
+
+    void* pointer = (void*) &message;
+    if (SSL_write(ssl, pointer, sizeof (Message)) == 0)
+        ERR_print_errors_fp(stderr);
+
+    if(SSL_read(ssl, pointer, sizeof (Message)) == 0)
+        throw ClientException(ClientException::ErrorCode::LOGGING_IN_FAILURE);
+}
+
+void Client::logOut() {
+
 }

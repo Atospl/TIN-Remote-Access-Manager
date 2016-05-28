@@ -32,6 +32,10 @@ private:
     void prepare();
     // wyslanie danych
     void sendData();
+
+    void logIn();
+
+    void logOut();
     // initialize openSSL library
     void initializeSSL();
     // initialize SSL context
@@ -60,7 +64,9 @@ private:
         enum ErrorCode {
             SOCKET_FAILURE,
             NO_SERVER,
-            CONNECT_FAILURE
+            CONNECT_FAILURE,
+            LOGGING_IN_FAILURE,
+            LOG_OUT
         } errorCode;
         ClientException(ErrorCode code) : errorCode(code) {};
     };

@@ -35,6 +35,7 @@ private:
     // performs server-side handshake
     void SSLHandshake();
 
+    void verifyUser(Message message);
     //Handles client's message
     void handleMessage(Message message);
 
