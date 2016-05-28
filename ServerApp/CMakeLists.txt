@@ -5,6 +5,6 @@ find_package(OpenSSL REQUIRED)
 include_directories(${OPENSSL_INCLUDE_DIR})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lssl -lcrypto -std=c++11 -pthread")
 
-set(SOURCE_FILES src/main.cpp src/Server.cpp src/Server.h src/Session.cpp src/Session.h src/FileController.cpp src/FileController.h ../Shared/Message.cpp ../Shared/Message.h)
+set(SOURCE_FILES src/main.cpp src/Server.cpp src/Server.h src/Session.cpp src/Session.h src/FileController.cpp src/FileController.h ../Shared/Message.cpp ../Shared/Message.h src/IptablesController.cpp src/IptablesController.h)
 add_executable(ServerApp ${SOURCE_FILES})
 target_link_libraries(ServerApp ${OPENSSL_LIBRARIES})
