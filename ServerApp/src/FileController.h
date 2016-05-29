@@ -9,6 +9,7 @@
 #include "time.h"
 #include <vector>
 #include <string>
+#include <cmath>
 
 struct client
 {
@@ -39,6 +40,7 @@ public:
     std::vector<reservation> getReservations();
     std::vector<client> getClients();
     machine getMachine();
+    bool addReservation(std::string userLogin, int machineId, time_t date);
 
 private:
     FileController(){};
