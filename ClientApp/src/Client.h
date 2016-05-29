@@ -13,6 +13,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <unistd.h>
+#include "../../Shared/Message.h"
 
 using namespace std;
 
@@ -31,7 +32,9 @@ private:
     // przygotuj klienta
     void prepare();
     // wyslanie danych
-    void sendData();
+    void sendData(Message message);
+
+    void getDataToTransfer();
 
     void logIn();
 
@@ -66,7 +69,7 @@ private:
             NO_SERVER,
             CONNECT_FAILURE,
             LOGGING_IN_FAILURE,
-            LOG_OUT
+            LOGGING_OFF
         } errorCode;
         ClientException(ErrorCode code) : errorCode(code) {};
     };

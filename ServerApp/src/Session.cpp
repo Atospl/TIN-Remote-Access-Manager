@@ -19,15 +19,45 @@ void Session::run() {
 
     int rval;
     Message buf;
-
-    //odczytaj Message od klienta
-    if ((rval = SSL_read(ssl, &buf, sizeof (Message))) == 0)
+    int ssl_error;
+    try {
+        while (1) {
+            if ((rval = SSL_read(ssl, &buf, sizeof(Message))) == 0)
         //sprawdzic czy czyta wszystkie bajty
-        ERR_print_errors_fp(stderr);
-    handleMessage(buf);
+                ERR_print_errors_fp(stderr);
 
-    close(clientSocket);
-    delete this;
+            switch (ssl_error = SSL_get_error(ssl, rval)) {
+                case SSL_ERROR_NONE:
+                    cout << "SSL_ERROR_NONE" << endl;
+                    break;
+
+                case SSL_ERROR_ZERO_RETURN:
+                    //connection closed by client, clean up
+                    throw SessionException(SessionException::ErrorCode::SSL_ZERO_RETURN);
+
+                case SSL_ERROR_WANT_READ:
+                    //the operation did not complete, block the read
+                    throw SessionException(SessionException::ErrorCode::SSL_WANT_READ);
+
+                case SSL_ERROR_WANT_WRITE:
+                    //the operation did not complete
+                    throw SessionException(SessionException::ErrorCode::SSL_WANT_WRITE);
+
+                case SSL_ERROR_SYSCALL:
+                    //some I/O error occured (could be caused by false start in Chrome for instance), disconnect the client and clean up
+                    cout << "SSL_ERROR_SYSCALL" << endl;
+                    throw SessionException(SessionException::ErrorCode::SSL_SYSCALL);
+                default:
+                    cout << "default" << endl;
+            }
+            if (rval > 0)
+                handleMessage(buf);
+        }
+    }
+    catch (SessionException e) {
+        cout<<"Closing " << endl;
+        close(clientSocket);
+    }
 }
 
 void Session::initializeSSLBIO() {
@@ -37,7 +67,7 @@ void Session::initializeSSLBIO() {
 
 void Session::SSLHandshake() {
 //    SSL_set_accept_state(ssl);
-    if(SSL_accept(ssl) == -1) {
+    if (SSL_accept(ssl) == -1) {
         ERR_print_errors_fp(stderr);
         exit(1000);
     }
@@ -81,22 +111,24 @@ void Session::handleMessage(Message message) {
         case MessageType::BOOKING_LOG:
             cout << "BOOKING_LOG" << endl;
             break;
-
+        case MessageType::LOGGING_OFF:
+            cout << "LOGGING_OFF" << endl;
+            throw SessionException(SessionException::ErrorCode::LOGGING_OFF);
     }
 }
 
-bool Session::verifyUser(Message message){
-    vector<client> clients = FileController::getInstance().getClients();
+bool Session::verifyUser(Message message) {
+    /*vector<client> clients = FileController::getInstance().getClients();
     unsigned char digest[SHA512_DIGEST_LENGTH];
 
-    /** @TODO SHA512 hash creation - move to separate function */
+    *//** @TODO SHA512 hash creation - move to separate function *//*
     SHA512((unsigned char*)&message.messageData.loggingMessage.password,
            strlen(message.messageData.loggingMessage.password),
            (unsigned char*)&digest);
     char hexDigest[SHA512_DIGEST_LENGTH*2+1];
     for(int i=0; i < SHA512_DIGEST_LENGTH; ++i)
         sprintf(&hexDigest[i*2], "%02x", (unsigned int)digest[i]);
-    /***********************************************************/
+    *//***********************************************************//*
 
     for(auto i : clients) {
         if (i.login == message.messageData.loggingMessage.login)
@@ -106,6 +138,9 @@ bool Session::verifyUser(Message message){
         else
             return false;
     }
-    return false;
-    //SSL_write(ssl, "I got your message",18);
+    return false;*/
+    message.messageType = MessageType::SUCCESS;
+    void* pointer = (void*) &message;
+    if (SSL_write(ssl, pointer, sizeof (Message)) == 0)
+        ERR_print_errors_fp(stderr);
 }

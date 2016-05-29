@@ -14,7 +14,8 @@ enum MessageType {
     SUCCESS = 4,
     MACHINE_DATA = 5,
     BOOKING_LOG = 6,
-    LOGGING = 7
+    LOGGING_OFF = 7,
+    LOGGING = 8
 };
 
 struct Message {

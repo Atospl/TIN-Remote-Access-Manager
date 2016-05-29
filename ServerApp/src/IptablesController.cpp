@@ -9,12 +9,12 @@ using namespace std;
 
 bool IptablesController::grantAccess(std::string ip) {
     string command = "iptables -A FORWARD -s " + ip + " -j ACCEPT";
-    return system(command) == 0;
+    return system(command.c_str()) == 0;
 }
 
 bool IptablesController::revokeAccess(std::string ip) {
     string command = "iptables -D FORWARD -s " + ip + " -j ACCEPT";
-    return system(command) == 0;
+    return system(command.c_str()) == 0;
 }
 
 bool IptablesController::grantWaitAndRevoke(std::string ip, unsigned int minutes) {

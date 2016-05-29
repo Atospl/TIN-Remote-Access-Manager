@@ -44,6 +44,16 @@ private:
     int ip4Address;
     // SSL parameters
     SSL *ssl;
+    struct SessionException {
+        enum ErrorCode {
+            LOGGING_OFF,
+            SSL_ZERO_RETURN,
+            SSL_WANT_READ,
+            SSL_WANT_WRITE,
+            SSL_SYSCALL
+        } errorCode;
+        SessionException(ErrorCode code) : errorCode(code) {};
+    };
 };
 
 

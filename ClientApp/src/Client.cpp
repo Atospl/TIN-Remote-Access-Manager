@@ -42,7 +42,7 @@ void Client::runClient() {
     try {
         prepare();
         logIn();
-        sendData();
+        getDataToTransfer();
     } catch (ClientException e) {
         cerr << "FAILURE. Source: ";
         switch (e.errorCode) {
@@ -58,17 +58,18 @@ void Client::runClient() {
             case ClientException::ErrorCode::LOGGING_IN_FAILURE:
                 cerr << "Logging in failure";
                 break;
-            case ClientException::ErrorCode::LOG_OUT:
-                cerr<< "Logging out";
+            case ClientException::ErrorCode::LOGGING_OFF:
+                cerr << "Logging out";
                 logOut();
                 break;
         }
         cerr << endl;
+        cout << "Closing" << endl;
         close(clientSocket);
     }
 }
 
-void Client::prepare(){
+void Client::prepare() {
     // Initialize SSL configuration and variables
     initializeSSL();
     initializeSSL_CTX();
@@ -91,81 +92,83 @@ void Client::prepare(){
 
 
     initializeSSL_BIO();
-    if(SSL_connect(ssl) == -1) {
+    if (SSL_connect(ssl) == -1) {
         ERR_print_errors_fp(stderr);
         exit(1000);
     }
 }
 
-void Client::sendData() {
+void Client::getDataToTransfer() {
 
     Message message;
     int c;
-    cout<<"Co chcesz wyslac"<<endl;
-    cout<<"1 - LOGGING"<<endl;
-    cout<<"2 - BOOKING"<<endl;
-    cout<<"3 - ACCESS_REQUEST"<<endl;
-    cout<<"4 - FAIL"<<endl;
-    cout<<"5 - SUCCESS"<<endl;
-    cout<<"6 - MACHINE_DATA"<<endl;
-    cout<<"7 - BOOKING_LOG"<<endl;
-    cin >> c;
-    switch (c){
-        case MessageType::BOOKING:
-            message.messageType = MessageType::BOOKING;
-            Message::MessageData::BookingMessage bookingMessage;
-            cout<<"Podaj id"<<endl;
-            uint32_t id;
-            cin >> id;
-            bookingMessage.id = id;
-            time(&bookingMessage.data);
-            message.messageData.bookingMessage = bookingMessage;
-            break;
+    while (1) {
+        cout << "Co chcesz wyslac" << endl;
+        cout << "1 - BOOKING" << endl;
+        cout << "2 - ACCESS_REQUEST" << endl;
+        cout << "3 - FAIL" << endl;
+        cout << "4 - SUCCESS" << endl;
+        cout << "5 - MACHINE_DATA" << endl;
+        cout << "6 - BOOKING_LOG" << endl;
+        cout << "7 - LOGGING_OUT" << endl;
+        cin >> c;
+        switch (c) {
+            case MessageType::BOOKING:
+                message.messageType = MessageType::BOOKING;
+                Message::MessageData::BookingMessage bookingMessage;
+                cout << "Podaj id" << endl;
+                uint32_t id;
+                cin >> id;
+                bookingMessage.id = id;
+                time(&bookingMessage.data);
+                message.messageData.bookingMessage = bookingMessage;
+                break;
 
-        case MessageType::ACCESS_REQUEST:
-            message.messageType = MessageType::ACCESS_REQUEST;
-            break;
+            case MessageType::ACCESS_REQUEST:
+                message.messageType = MessageType::ACCESS_REQUEST;
+                break;
 
-        case MessageType::FAIL:
-            message.messageType = MessageType::FAIL;
-            cout<<"Podaj wiadomosc bledu"<<endl;
-            char failMessage[64];
-            cin >> failMessage;
-            strcpy(message.messageData.failMessage ,failMessage);
-            break;
+            case MessageType::FAIL:
+                message.messageType = MessageType::FAIL;
+                cout << "Podaj wiadomosc bledu" << endl;
+                char failMessage[64];
+                cin >> failMessage;
+                strcpy(message.messageData.failMessage, failMessage);
+                break;
 
-        case MessageType::SUCCESS:
-            message.messageType = MessageType::SUCCESS;
-            cout<<"Podaj wiadomosc sukcesu"<<endl;
-            char successMessage[64];
-            cin >> successMessage;
-            strcpy(message.messageData.successMessage ,successMessage);
-            break;
+            case MessageType::SUCCESS:
+                message.messageType = MessageType::SUCCESS;
+                cout << "Podaj wiadomosc sukcesu" << endl;
+                char successMessage[64];
+                cin >> successMessage;
+                strcpy(message.messageData.successMessage, successMessage);
+                break;
 
-        case MessageType::MACHINE_DATA:
-            message.messageType = MessageType::MACHINE_DATA;
-            Message::MessageData::MachineDataMessage machineDataMessage;
-            cout<<"Podaj id"<<endl;
-            cin >> id;
-            cout<<"Podaj informacje"<<endl;
-            char information[32];
-            cin >> information;
-            strcpy(machineDataMessage.information ,information);
-            machineDataMessage.id = id;
-            message.messageData.machineDataMessage  = machineDataMessage;
-            break;
+            case MessageType::MACHINE_DATA:
+                message.messageType = MessageType::MACHINE_DATA;
+                Message::MessageData::MachineDataMessage machineDataMessage;
+                cout << "Podaj id" << endl;
+                cin >> id;
+                cout << "Podaj informacje" << endl;
+                char information[32];
+                cin >> information;
+                strcpy(machineDataMessage.information, information);
+                machineDataMessage.id = id;
+                message.messageData.machineDataMessage = machineDataMessage;
+                break;
 
-        case MessageType::BOOKING_LOG:
-            message.messageType = MessageType::BOOKING_LOG;
-            break;
-        default:
-            cout<<"Nie poprawna wartość"<<endl;
-            return;
+            case MessageType::BOOKING_LOG:
+                message.messageType = MessageType::BOOKING_LOG;
+                break;
+            case MessageType::LOGGING_OFF:
+                throw ClientException(ClientException::LOGGING_OFF);
+            default:
+                cout << "Nie poprawna wartość" << endl;
+                return;
 
+        }
+        sendData(message);
     }
-    void* pointer = (void*) &message;
-    if (SSL_write(ssl, pointer, sizeof (Message)) == 0)
-        ERR_print_errors_fp(stderr);
 }
 
 void Client::initializeSSL() {
@@ -178,24 +181,24 @@ void Client::initializeSSL() {
 
 void Client::initializeSSL_CTX() {
     sslctx = SSL_CTX_new(SSLv23_client_method());
-    if(sslctx == NULL)
+    if (sslctx == NULL) {
     {
         ERR_print_errors_fp(stderr);
         exit(1);
     }
     // Load OpenSSL cerrificate file
-    if(SSL_CTX_use_certificate_file(sslctx, certPath, SSL_FILETYPE_PEM) <= 0){
+    if (SSL_CTX_use_certificate_file(sslctx, certPath, SSL_FILETYPE_PEM) <= 0) {
         ERR_print_errors_fp(stderr);
         exit(1);
     }
     // Load OpenSSL Private Key
-    if(SSL_CTX_use_PrivateKey_file(sslctx, keyPath, SSL_FILETYPE_PEM) <= 0){
+    if (SSL_CTX_use_PrivateKey_file(sslctx, keyPath, SSL_FILETYPE_PEM) <= 0) {
         ERR_print_errors_fp(stderr);
         exit(1);
     }
 
     /* verify private key */
-    if (!SSL_CTX_check_private_key(sslctx))
+    if (!SSL_CTX_check_private_key(sslctx)) {
     {
         fprintf(stderr, "Private key does not match the public certificate\n");
         abort();
@@ -208,8 +211,8 @@ void Client::initializeSSL_BIO() {
     SSL_set_fd(ssl, clientSocket);
 }
 
-bool Client::setServerPortAndName(int p, string name){
-    if(!running){
+bool Client::setServerPortAndName(int p, string name) {
+    if (!running) {
         port = p;
         hostname = name;
     }
@@ -218,7 +221,7 @@ bool Client::setServerPortAndName(int p, string name){
     return true;
 }
 
-bool Client::setServerPortAndName(){
+bool Client::setServerPortAndName() {
     //todo - pobranie z pliku konfiguracyjnego
     return true;
 }
@@ -228,21 +231,39 @@ void Client::logIn() {
     char login[32];
     message.messageType = MessageType::LOGGING;
     Message::MessageData::LoggingMessage loggingMessage;
-    cout<<"Podaj login"<<endl;
-    cin.getline(login,32);
+    cout << "Podaj login" << endl;
+    cin.getline(login, 32);
     char *password = getpass("Password: ");
-    strcpy(loggingMessage.login ,login);
+    strcpy(loggingMessage.login, login);
     strcpy(loggingMessage.password, password);
     message.messageData.loggingMessage = loggingMessage;
 
-    void* pointer = (void*) &message;
-    if (SSL_write(ssl, pointer, sizeof (Message)) == 0)
+    void *pointer = (void *) &message;
+    if (SSL_write(ssl, pointer, sizeof(Message)) == 0)
         ERR_print_errors_fp(stderr);
 
-    if(SSL_read(ssl, pointer, sizeof (Message)) == 0)
+    if (SSL_read(ssl, &message, sizeof(Message)) == 0)
         throw ClientException(ClientException::ErrorCode::LOGGING_IN_FAILURE);
+
+    if (message.messageType == SUCCESS) {
+        cout << "Success" << endl;
+    }
+    else {
+        cout << "No successs" << endl;
+        throw ClientException(ClientException::CONNECT_FAILURE);
+    }
+
 }
 
 void Client::logOut() {
+    Message message;
+    message.messageType = LOGGING_OFF;
+    sendData(message);
+}
 
+void Client::sendData(Message message) {
+    cout << "SENDDATA " + message.messageType << endl;
+    void *pointer = (void *) &message;
+    if (SSL_write(ssl, pointer, sizeof(Message)) == 0)
+        ERR_print_errors_fp(stderr);
 }
