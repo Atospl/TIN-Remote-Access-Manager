@@ -46,6 +46,7 @@ machine FileController::getMachine()
     }
     else
     {
+        machineFileMutex.unlock();
         cout<<"Error opening machine file"<<endl;
         toReturn.ipAdress = -1;
         return toReturn;
@@ -90,9 +91,13 @@ vector<client> FileController::getClients() {
         //cout << "Clients file opened!" << endl;
         str << clientsFile.rdbuf();
         clientsFile.close();
+        clientsFileMutex.unlock();
+
     }
     else
     {
+        clientsFileMutex.unlock();
+
         cout<<"Error opening clients file"<<endl;
         return clients;
     }
@@ -105,7 +110,7 @@ vector<client> FileController::getClients() {
         client client;
 
         if(values.size() != 3 || !isNumber(values[1]) || !isNumber(values[2]))
-        //if(values.size() != 3)
+            //if(values.size() != 3)
             continue;
 
         client.login = values[0];
@@ -137,9 +142,11 @@ vector<reservation> FileController::getReservations() {
         //cout << "Reservations file opened!" << endl;
         str << reservationsFile.rdbuf();
         reservationsFile.close();
+        reservationsFileMutex.unlock();
     }
     else
     {
+        reservationsFileMutex.unlock();
         cout<<"Error opening reservations file"<<endl;
         return reservations;
     }
@@ -149,7 +156,6 @@ vector<reservation> FileController::getReservations() {
     {
         vector<string> values = getValuesCsv(line);
 
-        int i = values.size();
 
         if(values.size() != 7 || !isNumber(values[1]) || !isNumber(values[2])  || !isNumber(values[3]) || !isNumber(values[4]) || !isNumber(values[5]) || !isNumber(values[6]))
             continue;
@@ -160,7 +166,8 @@ vector<reservation> FileController::getReservations() {
 
         reservation.machineId = stoi(values[1]);
 
-        struct tm * date = new struct tm;
+        time_t rawtime;
+        struct tm * date = localtime(&rawtime);
         date->tm_hour = stoi(values[2]);
         date->tm_min = stoi(values[3]);
         date->tm_sec = 0;
@@ -170,12 +177,103 @@ vector<reservation> FileController::getReservations() {
 
         reservation.date = mktime(date);
 
-        delete date;
         reservations.push_back(reservation);
     }
 
     return reservations;
 }
+
+bool FileController::addReservation(std::string userLogin, int machineId, time_t date)
+{
+    stringstream str;
+    string line;
+
+    reservationsFileMutex.lock();
+    ifstream reservationsFile;
+    reservationsFile.open(reservationsFilePath.c_str());
+
+    if(reservationsFile.is_open())
+    {
+        //cout << "Reservations file opened!" << endl;
+        str << reservationsFile.rdbuf();
+        reservationsFile.close();
+    }
+    else
+    {
+        reservationsFileMutex.unlock();
+        cout<<"Error opening reservations file"<<endl;
+        return false;
+    }
+    // ignore first line
+    getline(str, line);
+
+    //sprawdzenie, czy nie ma kofliktu rezerwacji, czy nie istnieje już jakaś na tę datę
+    while(getline(str,line))
+    {
+        vector<string> values = getValuesCsv(line);
+
+        //unsigned long i = values.size();
+
+        if(values.size() != 7 || !isNumber(values[1]) || !isNumber(values[2])  || !isNumber(values[3]) || !isNumber(values[4]) || !isNumber(values[5]) || !isNumber(values[6]))
+            continue;
+
+        reservation reservation;
+
+        reservation.userLogin = values[0];
+
+        reservation.machineId = stoi(values[1]);
+
+        time_t rawtime;
+        struct tm * dateTm = localtime(&rawtime);
+        dateTm->tm_hour = stoi(values[2]);
+        dateTm->tm_min = stoi(values[3]);
+        dateTm->tm_sec = 0;
+        dateTm->tm_mday = stoi(values[4]);
+        dateTm->tm_mon = stoi(values[5]);
+        dateTm->tm_year = stoi(values[6]);
+
+        time_t dateToCompare = mktime(dateTm);
+
+        //jeśli różnica czasu rezerwacji < 1 godzina, to zwraca false
+        if (abs(difftime(dateToCompare, date)) < 3600)
+        {
+            reservationsFileMutex.unlock();
+            return false;
+        }
+
+    }
+
+
+    struct tm * dateTm;
+    dateTm = localtime(&date);
+    dateTm->tm_mon = dateTm->tm_mon - 1;//bo strftime zwraca miesiące z zakresu 1-12, a chcemy mieć 0-11
+    //std::string dateString;
+    char dateString [80];
+    strftime(dateString, sizeof(dateString), "%H,%M,%d,%m,%y", dateTm);
+
+    std::string reservationToAdd = userLogin + "," + std::to_string(machineId) + "," + dateString;
+
+    std::ofstream reservationsFileOut;
+
+    reservationsFileOut.open(reservationsFilePath.c_str(), std::ios::app);
+
+    if(reservationsFileOut.is_open())
+    {
+        //cout << "Reservations file opened!" << endl;
+        reservationsFileOut << endl <<reservationToAdd;
+        reservationsFileOut.close();
+        reservationsFileMutex.unlock();
+        return true;
+    }
+    else
+    {
+        reservationsFileMutex.unlock();
+        cout<<"Error opening reservations file"<<endl;
+        return false;
+    }
+}
+
+
 //dla wejściowego stringa z csv zwraca wektor rozdzielonych stringów
 vector<string> FileController::getValuesCsv(string line) {
     unsigned long curr = 0;
@@ -190,7 +288,7 @@ vector<string> FileController::getValuesCsv(string line) {
         result.push_back(line.substr(i, curr - i));
         ++curr;
         i = curr;
-       // ++curr;
+        // ++curr;
     }
     return result;
 }
