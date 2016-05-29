@@ -6,10 +6,11 @@
 
 class IptablesController {
 private:
-    static std::mutex iptablesMutex;
+    static bool grantAccess(std::string ip);
+    static bool revokeAccess(std::string ip);
+    static bool grantWaitAndRevoke(std::string ip, unsigned int minutes);
 public:
-    static bool grantAccess(std::string ip, unsigned int minutes);
-
+    static void grantLimitedAccess(std::string ip, unsigned int minutes);
 };
 
 

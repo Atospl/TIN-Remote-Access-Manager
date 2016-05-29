@@ -2,8 +2,34 @@
 // Created by chmielok on 5/28/16.
 //
 
+#include <thread>
 #include "IptablesController.h"
 
-bool IptablesController::grantAccess(std::string ip, unsigned int minutes) {
-    ;
+using namespace std;
+
+bool IptablesController::grantAccess(std::string ip) {
+    string command = "iptables -A FORWARD -s " + ip + " -j ACCEPT";
+    return system(command) == 0;
 }
+
+bool IptablesController::revokeAccess(std::string ip) {
+    string command = "iptables -D FORWARD -s " + ip + " -j ACCEPT";
+    return system(command) == 0;
+}
+
+bool IptablesController::grantWaitAndRevoke(std::string ip, unsigned int minutes) {
+    bool success;
+    if (grantAccess(ip)) {
+        this_thread::__sleep_for(chrono::seconds(minutes * 60), chrono::nanoseconds(0));
+        success = revokeAccess(ip);
+    }
+    else
+        success = false;
+    return success;
+}
+
+void IptablesController::grantLimitedAccess(std::string ip, unsigned int minutes) {
+    thread workerThread(&IptablesController::grantWaitAndRevoke, ip, minutes);
+    workerThread.join();
+}
+
