@@ -174,6 +174,8 @@ vector<reservation> FileController::getReservations() {
         date->tm_mday = stoi(values[4]);
         date->tm_mon = stoi(values[5]);
         date->tm_year = stoi(values[6]);
+        date->tm_isdst = -1;
+
 
         reservation.date = mktime(date);
 
@@ -231,9 +233,14 @@ bool FileController::addReservation(std::string userLogin, int machineId, time_t
         dateTm->tm_mday = stoi(values[4]);
         dateTm->tm_mon = stoi(values[5]);
         dateTm->tm_year = stoi(values[6]);
+        dateTm->tm_isdst = -1;
+
 
         time_t dateToCompare = mktime(dateTm);
 
+        cout<<ctime(&dateToCompare)<<endl;
+        cout<<ctime(&date)<<endl;
+        cout<< abs(difftime(dateToCompare, date))<< endl;
         //jeśli różnica czasu rezerwacji < 1 godzina, to zwraca false
         if (abs(difftime(dateToCompare, date)) < 3600)
         {
@@ -247,9 +254,10 @@ bool FileController::addReservation(std::string userLogin, int machineId, time_t
     struct tm * dateTm;
     dateTm = localtime(&date);
     dateTm->tm_mon = dateTm->tm_mon - 1;//bo strftime zwraca miesiące z zakresu 1-12, a chcemy mieć 0-11
+    dateTm->tm_year = dateTm->tm_year - 1900;//bo strfitme zwraca cały rok, a my chcemy mieć rok liczony od 1900
     //std::string dateString;
     char dateString [80];
-    strftime(dateString, sizeof(dateString), "%H,%M,%d,%m,%y", dateTm);
+    strftime(dateString, sizeof(dateString), "%H,%M,%d,%m,%Y", dateTm);
 
     std::string reservationToAdd = userLogin + "," + std::to_string(machineId) + "," + dateString;
 
