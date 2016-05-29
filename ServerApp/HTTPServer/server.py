@@ -53,8 +53,6 @@ class UserSessionStore():
             return False
         
 store = UserSessionStore()
-    
-
 
 class SecureHTTPServer(HTTPServer):
     def __init__(self, server_address, HandlerClass):
@@ -78,10 +76,12 @@ class SecureHTTPRequestHandler(SimpleHTTPRequestHandler):
         self.rfile = socket._fileobject(self.request, "rb", self.rbufsize)
         self.wfile = socket._fileobject(self.request, "wb", self.wbufsize)
     
+#    def do_GET(self):
+#        """Handles GET request"""
+    
     def do_POST(self):
         """Processes POST requests"""
         print(self.headers)
-#        self.send_response(200)
         content_len = int(self.headers.getheader('content-length', 0))
         post_data = urlparse.parse_qs(self.rfile.read(content_len).decode('utf-8'))
         for (key, value) in post_data.iteritems():
@@ -96,16 +96,19 @@ class SecureHTTPRequestHandler(SimpleHTTPRequestHandler):
         """Check if user is registered and send appropriate response"""
         """@TODO add handling exceptions"""
         if store.userSessions[login[0]]['passHash'] == hashlib.sha512(password[0]).hexdigest():
+            self.send_response(302, 'OK')
+            self.send_header('Location', '/reservations.html')
             sessionId = store.genSessionID(login[0])
             cookie = Cookie.SimpleCookie()
             cookie["session-id"] = sessionId
-            self.send_response(200, 'OK')
             self.wfile.write(cookie.output())
-            self.end_headers()
+            self.end_headers()                        
             return True
         else:
             self.send_response(401, "Invalid login/password")
-            self.end_headers()                
+            self.send_header('Content-type', 'html')
+            self.end_headers()            
+            self.wfile.write("<html><head></head><body><h1>Invalid login/password</h1></body></html>")
             return False
 
         
