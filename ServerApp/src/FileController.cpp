@@ -7,12 +7,14 @@
 #include <mutex>
 
 #include "FileController.h"
+#include "FilesPaths.h"
 
 using namespace std;
 
-static const string machineFilePath = "config/machine";
-static const string reservationsFilePath = "config/reservations";
-static const string clientsFilePath = "config/clients";
+//static const string machineFilePath = "congif/machine";
+//static const string reservationsFilePath = "config/reservations";
+////static const string clientsFilePath = "/home/maciek/Filecontroller/config/clients";
+//static const string clientsFilePath = FilesPaths::getInstance().getClientsPath();
 
 mutex clientsFileMutex;
 mutex reservationsFileMutex;
@@ -36,7 +38,7 @@ machine FileController::getMachine()
 
     machineFileMutex.lock();
     ifstream machineFile;
-    machineFile.open(machineFilePath.c_str());
+    machineFile.open(FilesPaths::getInstance().getMachinePath());
 
     if(machineFile.is_open())
     {
@@ -84,7 +86,8 @@ vector<client> FileController::getClients() {
 
     clientsFileMutex.lock();
     ifstream clientsFile;
-    clientsFile.open(clientsFilePath.c_str());
+    //clientsFile.open(clientsFilePath.c_str());
+    clientsFile.open(FilesPaths::getInstance().getClientsPath());
 
     if(clientsFile.is_open())
     {
@@ -135,7 +138,7 @@ vector<reservation> FileController::getReservations() {
 
     reservationsFileMutex.lock();
     ifstream reservationsFile;
-    reservationsFile.open(reservationsFilePath.c_str());
+    reservationsFile.open(FilesPaths::getInstance().getReservationsPath());
 
     if(reservationsFile.is_open())
     {
@@ -192,7 +195,7 @@ bool FileController::addReservation(std::string userLogin, int machineId, time_t
 
     reservationsFileMutex.lock();
     ifstream reservationsFile;
-    reservationsFile.open(reservationsFilePath.c_str());
+    reservationsFile.open(FilesPaths::getInstance().getReservationsPath());
 
     if(reservationsFile.is_open())
     {
@@ -263,7 +266,7 @@ bool FileController::addReservation(std::string userLogin, int machineId, time_t
 
     std::ofstream reservationsFileOut;
 
-    reservationsFileOut.open(reservationsFilePath.c_str(), std::ios::app);
+    reservationsFileOut.open(FilesPaths::getInstance().getReservationsPath(), std::ios::app);
 
     if(reservationsFileOut.is_open())
     {
