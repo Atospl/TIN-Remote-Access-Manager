@@ -41,10 +41,10 @@ public:
     std::vector<client> getClients();
     machine getMachine();
     bool addReservation(std::string userLogin, int machineId, time_t date);
+    std::vector<std::string> static getValuesCsv(std::string);
 
 private:
     FileController(){};
-    std::vector<std::string> getValuesCsv(std::string);
     bool isNumber(const std::string&);
 };
 
