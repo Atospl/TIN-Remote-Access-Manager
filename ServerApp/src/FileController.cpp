@@ -10,9 +10,9 @@
 
 using namespace std;
 
-static const string machineFilePath = "machine";
-static const string reservationsFilePath = "reservations";
-static const string clientsFilePath = "clients";
+static const string machineFilePath = "config/machine";
+static const string reservationsFilePath = "config/reservations";
+static const string clientsFilePath = "config/clients";
 
 mutex clientsFileMutex;
 mutex reservationsFileMutex;
