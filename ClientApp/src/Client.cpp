@@ -44,7 +44,6 @@ void Client::runClient() {
         logIn();
         getDataToTransfer();
     } catch (ClientException e) {
-        cerr << "FAILURE. Source: ";
         switch (e.errorCode) {
             case ClientException::ErrorCode::CONNECT_FAILURE:
                 cerr << "Connect failure";
@@ -59,13 +58,13 @@ void Client::runClient() {
                 cerr << "Logging in failure";
                 break;
             case ClientException::ErrorCode::LOGGING_OFF:
-                cerr << "Logging out";
+                cerr << "Logging out" << endl;
                 logOut();
                 break;
         }
-        cerr << endl;
-        cout << "Closing" << endl;
+        cerr << "Closing" << endl;
         close(clientSocket);
+        exit(1);
     }
 }
 
@@ -90,7 +89,6 @@ void Client::prepare() {
         throw ClientException(ClientException::ErrorCode::CONNECT_FAILURE);
     }
 
-
     initializeSSL_BIO();
     if (SSL_connect(ssl) == -1) {
         ERR_print_errors_fp(stderr);
@@ -100,7 +98,6 @@ void Client::prepare() {
 
 void Client::getDataToTransfer() {
 
-    Message message;
     int c;
     while (1) {
         cout << "Co chcesz wyslac" << endl;
@@ -114,51 +111,27 @@ void Client::getDataToTransfer() {
         cin >> c;
         switch (c) {
             case MessageType::BOOKING:
-                message.messageType = MessageType::BOOKING;
-                Message::MessageData::BookingMessage bookingMessage;
-                cout << "Podaj id" << endl;
-                uint32_t id;
-                cin >> id;
-                bookingMessage.id = id;
-                time(&bookingMessage.data);
-                message.messageData.bookingMessage = bookingMessage;
+                sendBookingRequestMessage();;
                 break;
 
             case MessageType::ACCESS_REQUEST:
-                message.messageType = MessageType::ACCESS_REQUEST;
+                sendAccessRequestMessage();
                 break;
 
             case MessageType::FAIL:
-                message.messageType = MessageType::FAIL;
-                cout << "Podaj wiadomosc bledu" << endl;
-                char failMessage[64];
-                cin >> failMessage;
-                strcpy(message.messageData.failMessage, failMessage);
+                sendFailMessage();
                 break;
 
             case MessageType::SUCCESS:
-                message.messageType = MessageType::SUCCESS;
-                cout << "Podaj wiadomosc sukcesu" << endl;
-                char successMessage[64];
-                cin >> successMessage;
-                strcpy(message.messageData.successMessage, successMessage);
+                sendSuccessMessage();
                 break;
 
             case MessageType::MACHINE_DATA:
-                message.messageType = MessageType::MACHINE_DATA;
-                Message::MessageData::MachineDataMessage machineDataMessage;
-                cout << "Podaj id" << endl;
-                cin >> id;
-                cout << "Podaj informacje" << endl;
-                char information[32];
-                cin >> information;
-                strcpy(machineDataMessage.information, information);
-                machineDataMessage.id = id;
-                message.messageData.machineDataMessage = machineDataMessage;
+                sendMachineDataRequestMessage();
                 break;
 
             case MessageType::BOOKING_LOG:
-                message.messageType = MessageType::BOOKING_LOG;
+                sendBookingLogRequestMessage();
                 break;
             case MessageType::LOGGING_OFF:
                 throw ClientException(ClientException::LOGGING_OFF);
@@ -167,7 +140,6 @@ void Client::getDataToTransfer() {
                 return;
 
         }
-        sendData(message);
     }
 }
 
@@ -182,7 +154,6 @@ void Client::initializeSSL() {
 void Client::initializeSSL_CTX() {
     sslctx = SSL_CTX_new(SSLv23_client_method());
     if (sslctx == NULL) {
-    {
         ERR_print_errors_fp(stderr);
         exit(1);
     }
@@ -199,7 +170,6 @@ void Client::initializeSSL_CTX() {
 
     /* verify private key */
     if (!SSL_CTX_check_private_key(sslctx)) {
-    {
         fprintf(stderr, "Private key does not match the public certificate\n");
         abort();
     }
@@ -248,9 +218,13 @@ void Client::logIn() {
     if (message.messageType == SUCCESS) {
         cout << "Success" << endl;
     }
+    else if (message.messageType == FAIL) {
+        cerr << "Login FAIL" << endl;
+        throw ClientException(ClientException::LOGGING_IN_FAILURE);
+    }
     else {
-        cout << "No successs" << endl;
-        throw ClientException(ClientException::CONNECT_FAILURE);
+        cerr << "Wrong messegeType" << endl;
+        throw ClientException(ClientException::LOGGING_IN_FAILURE);
     }
 
 }
@@ -262,8 +236,79 @@ void Client::logOut() {
 }
 
 void Client::sendData(Message message) {
-    cout << "SENDDATA " + message.messageType << endl;
     void *pointer = (void *) &message;
     if (SSL_write(ssl, pointer, sizeof(Message)) == 0)
         ERR_print_errors_fp(stderr);
 }
+
+void Client::sendBookingRequestMessage() {
+    Message message;
+    message.messageType = MessageType::BOOKING;
+    Message::MessageData::BookingMessage bookingMessage;
+    cout << "Podaj id" << endl;
+    uint32_t id;
+    cin >> id;
+    bookingMessage.id = id;
+    time(&bookingMessage.data);
+    message.messageData.bookingMessage = bookingMessage;
+    sendData(message);
+}
+
+void Client::sendAccessRequestMessage() {
+    Message message;
+    message.messageType = MessageType::ACCESS_REQUEST;
+    sendData(message);
+}
+
+void Client::sendBookingLogRequestMessage() {
+    Message message;
+    message.messageType = MessageType::BOOKING_LOG;
+    sendData(message);
+}
+
+void Client::sendMachineDataRequestMessage() {
+    Message message;
+    uint32_t id;
+    message.messageType = MessageType::MACHINE_DATA;
+    Message::MessageData::MachineDataMessage machineDataMessage;
+    cout << "Podaj id" << endl;
+    cin >> id;
+    cout << "Podaj informacje" << endl;
+    char information[32];
+    cin >> information;
+    strcpy(machineDataMessage.information, information);
+    machineDataMessage.id = id;
+    message.messageData.machineDataMessage = machineDataMessage;
+    sendData(message);
+}
+
+void Client::sendSuccessMessage() {
+    Message message;
+    message.messageType = MessageType::SUCCESS;
+    cout << "Podaj wiadomosc sukcesu" << endl;
+    char successMessage[64];
+    cin >> successMessage;
+    strcpy(message.messageData.successMessage, successMessage);
+    sendData(message);
+}
+
+void Client::sendFailMessage() {
+    Message message;
+    message.messageType = MessageType::FAIL;
+    cout << "Podaj wiadomosc bledu" << endl;
+    char failMessage[64];
+    cin >> failMessage;
+    strcpy(message.messageData.failMessage, failMessage);
+    sendData(message);
+}
+
+
+
+
+
+
+
+
+
+
+

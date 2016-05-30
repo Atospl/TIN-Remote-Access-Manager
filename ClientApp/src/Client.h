@@ -36,6 +36,18 @@ private:
 
     void getDataToTransfer();
 
+    void sendBookingRequestMessage();
+
+    void sendAccessRequestMessage();
+
+    void sendMachineDataRequestMessage();
+
+    void sendBookingLogRequestMessage();
+
+    void sendSuccessMessage();
+
+    void sendFailMessage();
+
     void logIn();
 
     void logOut();

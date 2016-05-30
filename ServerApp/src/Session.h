@@ -35,9 +35,24 @@ private:
     // performs server-side handshake
     void SSLHandshake();
 
-    bool verifyUser(Message message);
     //Handles client's message
     void handleMessage(Message message);
+
+    void handleAccessRequestMessage();
+
+    void handleBookingLogRequestMessage();
+
+    void handleBookingRequestMessage(uint32_t id, time_t data);
+
+    void handleMachineDataRequestMessage(uint32_t id, char *information);
+
+    void handleSuccessMessage(char *successMessage);
+
+    void handleFailMessage(char *failMessage);
+
+    void handleLoginMessage(char *login, char *password);
+
+    bool verifyUser(char *login, char *password);
 
     int clientSocket;
     int serverSocket;
@@ -54,6 +69,8 @@ private:
         } errorCode;
         SessionException(ErrorCode code) : errorCode(code) {};
     };
+
+
 };
 
 

@@ -23,9 +23,7 @@ void Session::run() {
     try {
         while (1) {
             if ((rval = SSL_read(ssl, &buf, sizeof(Message))) == 0)
-        //sprawdzic czy czyta wszystkie bajty
                 ERR_print_errors_fp(stderr);
-
             switch (ssl_error = SSL_get_error(ssl, rval)) {
                 case SSL_ERROR_NONE:
                     cout << "SSL_ERROR_NONE" << endl;
@@ -50,13 +48,16 @@ void Session::run() {
                 default:
                     cout << "default" << endl;
             }
-            if (rval > 0)
+            while(rval != sizeof(Message))
+                cout<<"Read incomplete " << rval << endl;
+            if (rval == sizeof(Message))
                 handleMessage(buf);
         }
     }
     catch (SessionException e) {
         cout<<"Closing " << endl;
         close(clientSocket);
+        delete this;
     }
 }
 
@@ -76,40 +77,31 @@ void Session::SSLHandshake() {
 void Session::handleMessage(Message message) {
     switch (message.messageType) {
         case MessageType::LOGGING:
-            cout << "LOGGING" << endl;
-            cout << "login: " << message.messageData.loggingMessage.login << endl;
-            cout << "password: " << message.messageData.loggingMessage.password << endl;
-            verifyUser(message);
+            handleLoginMessage(message.messageData.loggingMessage.login, message.messageData.loggingMessage.password);
             break;
 
         case MessageType::BOOKING:
-            cout << "BOOKING" << endl;
-            cout << "id: " << message.messageData.bookingMessage.id << endl;
-            cout << "data: " << message.messageData.bookingMessage.data << endl;
+            handleBookingRequestMessage(message.messageData.bookingMessage.id, message.messageData.bookingMessage.data);
             break;
 
         case MessageType::ACCESS_REQUEST:
-            cout << "ACCESS_REQUEST" << endl;
+            handleAccessRequestMessage();
             break;
 
         case MessageType::FAIL:
-            cout << "FAIL" << endl;
-            cout << "failMessage: " << message.messageData.failMessage << endl;
+            handleFailMessage(message.messageData.failMessage);
             break;
 
         case MessageType::SUCCESS:
-            cout << "SUCCESS" << endl;
-            cout << "successMessage: " << message.messageData.successMessage << endl;
+            handleSuccessMessage(message.messageData.successMessage);
             break;
 
         case MessageType::MACHINE_DATA:
-            cout << "MACHINE_DATA" << endl;
-            cout << "id: " << message.messageData.machineDataMessage.id << endl;
-            cout << "information: " << message.messageData.machineDataMessage.information << endl;
+            handleMachineDataRequestMessage(message.messageData.machineDataMessage.id, message.messageData.machineDataMessage.information);
             break;
 
         case MessageType::BOOKING_LOG:
-            cout << "BOOKING_LOG" << endl;
+            handleBookingLogRequestMessage();
             break;
         case MessageType::LOGGING_OFF:
             cout << "LOGGING_OFF" << endl;
@@ -117,30 +109,87 @@ void Session::handleMessage(Message message) {
     }
 }
 
-bool Session::verifyUser(Message message) {
-    /*vector<client> clients = FileController::getInstance().getClients();
+bool Session::verifyUser(char * login, char * password) {
+    Message message;
+   /* vector<client> clients = FileController::getInstance().getClients();
     unsigned char digest[SHA512_DIGEST_LENGTH];
 
-    *//** @TODO SHA512 hash creation - move to separate function *//*
-    SHA512((unsigned char*)&message.messageData.loggingMessage.password,
-           strlen(message.messageData.loggingMessage.password),
+    *//* @TODO SHA512 hash creation - move to separate function *//*
+    SHA512((unsigned char*)&password,
+           strlen(password),
            (unsigned char*)&digest);
     char hexDigest[SHA512_DIGEST_LENGTH*2+1];
     for(int i=0; i < SHA512_DIGEST_LENGTH; ++i)
         sprintf(&hexDigest[i*2], "%02x", (unsigned int)digest[i]);
-    *//***********************************************************//*
+    *//*********************************************************//*
 
     for(auto i : clients) {
-        if (i.login == message.messageData.loggingMessage.login)
+        if (i.login == login)
             if (i.passHash.compare(hexDigest) == 0) {
+                message.messageType = MessageType::SUCCESS;
+                void* pointer = (void*) &message;
+                if (SSL_write(ssl, pointer, sizeof (Message)) == 0)
+                    ERR_print_errors_fp(stderr);
                 return true;
             }
-        else
-            return false;
     }
+
+    message.messageType = MessageType::FAIL;
+    void* pointer = (void*) &message;
+    if (SSL_write(ssl, pointer, sizeof (Message)) == 0)
+        ERR_print_errors_fp(stderr);
     return false;*/
+
     message.messageType = MessageType::SUCCESS;
     void* pointer = (void*) &message;
     if (SSL_write(ssl, pointer, sizeof (Message)) == 0)
         ERR_print_errors_fp(stderr);
+
 }
+
+void Session::handleBookingRequestMessage(uint32_t id, time_t data) {
+    cout << "BOOKING" << endl;
+    cout << "id: " << id << endl;
+    cout << "data: " << data << endl;
+}
+
+void Session::handleAccessRequestMessage() {
+    cout << "ACCESS_REQUEST" << endl;
+}
+
+void Session::handleMachineDataRequestMessage(uint32_t id, char * information) {
+    cout << "MACHINE_DATA" << endl;
+    cout << "id: " << id << endl;
+    cout << "information: " << information << endl;
+}
+
+void Session::handleBookingLogRequestMessage() {
+    cout << "BOOKING_LOG" << endl;
+}
+
+void Session::handleSuccessMessage(char * successMessage) {
+    cout << "SUCCESS" << endl;
+    cout << "successMessage: " << successMessage << endl;
+}
+
+void Session::handleFailMessage(char *failMessage) {
+    cout << "FAIL" << endl;
+    cout << "failMessage: " << failMessage << endl;
+}
+
+void Session::handleLoginMessage(char * login, char * password ){
+    cout << "LOGGING" << endl;
+    cout << "login: " << login << endl;
+    cout << "password: " << password << endl;
+    verifyUser(login, password);
+}
+
+
+
+
+
+
+
+
+
+
