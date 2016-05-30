@@ -1,9 +1,10 @@
 #include <iostream>
 #include "Server.h"
-
+#include "FilesPaths.h"
 using namespace std;
 
 int main() {
+    FilesPaths::getInstance().init("config/build_default.ini");
     Server::setDefaultPort(8765);
     Server::setMaxWaitingConns(10);
     Server server = Server::getServer();
