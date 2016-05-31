@@ -6,6 +6,7 @@
 #include <arpa/inet.h>
 #include <openssl/bio.h>
 #include <openssl/ssl.h>
+#include <iomanip>
 #include <sstream>
 #include <openssl/err.h>
 #include <openssl/sha.h>
@@ -186,7 +187,7 @@ string Session::sha512(string password) {
 
 string Session::to_hex(unsigned char s) {
     stringstream ss;
-    ss << hex << (int) s;
+    ss << setfill('0') << setw(2) << hex << (int) s;
     return ss.str();
 }
 
