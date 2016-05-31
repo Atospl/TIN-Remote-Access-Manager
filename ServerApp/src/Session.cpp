@@ -13,51 +13,51 @@
 #include "Session.h"
 #include "../../Shared/Message.h"
 #include "FileController.h"
+#include "IptablesController.h"
 
 void Session::run() {
     // perform necessary SSL operations
     initializeSSLBIO();
     SSLHandshake();
 
-    int rval;
     Message buf;
-    int ssl_error;
+    char* pBuf = (char *)&buf;
+    short bytesToRead = sizeof(Message);
+
+    int bytesRead = 0;
+    int readValue = 0;
+
     try {
-        while (1) {
-            if ((rval = SSL_read(ssl, &buf, sizeof(Message))) == 0)
-                ERR_print_errors_fp(stderr);
-            switch (ssl_error = SSL_get_error(ssl, rval)) {
-                case SSL_ERROR_NONE:
-                    cout << "SSL_ERROR_NONE" << endl;
-                    break;
+        while (true) {
+            readValue = SSL_read(ssl, pBuf, bytesToRead);
 
-                case SSL_ERROR_ZERO_RETURN:
-                    //connection closed by client, clean up
-                    throw SessionException(SessionException::ErrorCode::SSL_ZERO_RETURN);
-
-                case SSL_ERROR_WANT_READ:
-                    //the operation did not complete, block the read
-                    throw SessionException(SessionException::ErrorCode::SSL_WANT_READ);
-
-                case SSL_ERROR_WANT_WRITE:
-                    //the operation did not complete
-                    throw SessionException(SessionException::ErrorCode::SSL_WANT_WRITE);
-
-                case SSL_ERROR_SYSCALL:
-                    //some I/O error occured (could be caused by false start in Chrome for instance), disconnect the client and clean up
-                    cout << "SSL_ERROR_SYSCALL" << endl;
-                    throw SessionException(SessionException::ErrorCode::SSL_SYSCALL);
-                default:
-                    cout << "default" << endl;
+            if (readValue > 0) { // something was read, check if it is enough
+                bytesRead += readValue;
+                if (bytesRead == sizeof(Message)) {
+                    handleMessage(buf);
+                    pBuf = (char *)&buf;
+                    bytesToRead = sizeof(Message);
+                    bytesRead = 0;
+                } else {
+                    bytesToRead = sizeof(Message) - bytesRead;
+                    pBuf = (char *)&buf + bytesRead;
+                }
+            } else { // an error occured
+                int errorNumber = SSL_get_error(ssl, readValue);
+                if (errorNumber == SSL_ERROR_WANT_READ)
+                    continue;
+                else
+                    throw SessionException(SessionException::ErrorCode::SSL_ERROR, errorNumber);
             }
-            while(rval != sizeof(Message))
-                cout<<"Read incomplete " << rval << endl;
-            if (rval == sizeof(Message))
-                handleMessage(buf);
+
         }
-    }
-    catch (SessionException e) {
-        cout<<"Closing " << endl;
+
+    } catch (SessionException e){
+        if (e.errorCode == SessionException::ErrorCode::SSL_ERROR)
+            if (e.sslErrorNumber == SSL_ERROR_SYSCALL)
+                cerr << "Connection ended" << endl;
+            else
+                cerr << "SSL error: " << e.sslErrorNumber;
         close(clientSocket);
         delete this;
     }
@@ -79,11 +79,13 @@ void Session::SSLHandshake() {
 void Session::handleMessage(Message message) {
     switch (message.messageType) {
         case MessageType::LOGGING:
-            handleLoginMessage(message.messageData.loggingMessage.login, message.messageData.loggingMessage.password);
+            handleLoginMessage(message.messageData.loggingMessage.login,
+                               message.messageData.loggingMessage.password);
             break;
 
         case MessageType::BOOKING:
-            handleBookingRequestMessage(message.messageData.bookingMessage.id, message.messageData.bookingMessage.data);
+            handleBookingRequestMessage(message.messageData.bookingMessage.id,
+                                        message.messageData.bookingMessage.date);
             break;
 
         case MessageType::ACCESS_REQUEST:
@@ -98,14 +100,12 @@ void Session::handleMessage(Message message) {
             handleSuccessMessage(message.messageData.successMessage);
             break;
 
-        case MessageType::MACHINE_DATA:
-            handleMachineDataRequestMessage(message.messageData.machineDataMessage.id, message.messageData.machineDataMessage.information);
-            break;
 
         case MessageType::BOOKING_LOG:
             handleBookingLogRequestMessage();
             break;
-        case MessageType::LOGGING_OFF:
+
+        case MessageType::LOGGING_OUT:
             cout << "LOGGING_OFF" << endl;
             throw SessionException(SessionException::ErrorCode::LOGGING_OFF);
     }
@@ -118,19 +118,16 @@ bool Session::verifyUser(char * login, char * password) {
 
     for(auto i : clients) {
         if (i.login == login)
-            if (i.passHash.compare(hash) == 0) {
-                message.messageType = MessageType::SUCCESS;
-                void* pointer = (void*) &message;
-                if (SSL_write(ssl, pointer, sizeof (Message)) == 0)
-                    ERR_print_errors_fp(stderr);
-                return true;
-            }
+            return true;
+// TODO poprawić funkcję haszującą
+//            if (i.passHash.compare(hash) == 0) {
+//                message.messageType = MessageType::SUCCESS;
+//                void* pointer = (void*) &message;
+//                if (SSL_write(ssl, pointer, sizeof (Message)) == 0)
+//                    ERR_print_errors_fp(stderr);
+//                return true;
+//            }
     }
-
-    message.messageType = MessageType::FAIL;
-    void* pointer = (void*) &message;
-    if (SSL_write(ssl, pointer, sizeof (Message)) == 0)
-        ERR_print_errors_fp(stderr);
     return false;
 }
 
@@ -138,10 +135,16 @@ void Session::handleBookingRequestMessage(uint32_t id, time_t data) {
     cout << "BOOKING" << endl;
     cout << "id: " << id << endl;
     cout << "data: " << data << endl;
+
+    Message message;
+    message.messageType = MessageType::FAIL;
+    strcpy(message.messageData.failMessage, "Not yet implemented.");
+    sendData(message);
 }
 
 void Session::handleAccessRequestMessage() {
     cout << "ACCESS_REQUEST" << endl;
+
 }
 
 void Session::handleMachineDataRequestMessage(uint32_t id, char * information) {
@@ -168,7 +171,18 @@ void Session::handleLoginMessage(char * login, char * password ){
     cout << "LOGGING" << endl;
     cout << "login: " << login << endl;
     cout << "password: " << password << endl;
-    verifyUser(login, password);
+
+    Message message;
+
+    if (verified = verifyUser(login, password)) {
+        message.messageType = MessageType::SUCCESS;
+        strcpy(message.messageData.successMessage, "Logging successful");
+        userLogin = login;
+    } else {
+        message.messageType = MessageType::FAIL;
+        strcpy(message.messageData.failMessage, "Bad credentials");
+    }
+    sendData(message);
 }
 
 string Session::sha512(string password) {
@@ -190,6 +204,13 @@ string Session::to_hex(unsigned char s) {
     ss << setfill('0') << setw(2) << hex << (int) s;
     return ss.str();
 }
+
+void Session::sendData(Message message) {
+    if (SSL_write(ssl, &message, sizeof (Message)) == 0)
+        throw SessionException(SessionException::ErrorCode::SSL_ERROR);
+}
+
+
 
 
 

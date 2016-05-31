@@ -8,14 +8,13 @@
 #include <cstdint>
 #include <ctime>
 enum MessageType {
+    LOGGING = 0,
     BOOKING = 1,
     ACCESS_REQUEST = 2,
     FAIL = 3,
     SUCCESS = 4,
-    MACHINE_DATA = 5,
-    BOOKING_LOG = 6,
-    LOGGING_OFF = 7,
-    LOGGING = 8
+    BOOKING_LOG = 5,
+    LOGGING_OUT = 6,
 };
 
 struct Message {
@@ -29,16 +28,11 @@ struct Message {
 
         struct BookingMessage {
             uint32_t id;
-            time_t data;
+            time_t date;
         } bookingMessage;
 
         char failMessage[64];
         char successMessage[64];
-
-        struct MachineDataMessage {
-            uint32_t id;
-            char information[32];
-        } machineDataMessage;
 
         struct BookingLogMessage {
             uint32_t id;

@@ -4,7 +4,7 @@
 using namespace std;
 
 int main() {
-    FilesPaths::getInstance().init("config/build_default.ini");
+    FilesPaths::getInstance().init("../src/config/build_default.ini");
     Server::setDefaultPort(8765);
     Server::setMaxWaitingConns(10);
     Server server = Server::getServer();

@@ -113,7 +113,7 @@ void Server::listenForClients() {
     // czekaj na kolejne połączenia
     while (0 < (clientSocket = accept(serverSocket, (sockaddr*)&address_info, &data_length)) ) {
         Session * session;
-        session = new Session(clientSocket, serverSocket, address_info.sin_addr.s_addr, sslctx);
+        session = new Session(clientSocket, address_info.sin_addr.s_addr, sslctx);
 
         //odczytaj Message od klienta
         thread sessionThread(&Session::run, session); // utwórz wątek dla nowego połączenia

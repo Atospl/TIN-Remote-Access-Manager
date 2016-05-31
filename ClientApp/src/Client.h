@@ -34,6 +34,10 @@ private:
     // wyslanie danych
     void sendData(Message message);
 
+    bool handleResponse();
+
+    Message receiveData();
+
     void getDataToTransfer();
 
     void sendBookingRequestMessage();
@@ -81,9 +85,15 @@ private:
             NO_SERVER,
             CONNECT_FAILURE,
             LOGGING_IN_FAILURE,
-            LOGGING_OFF
+            LOGGING_OFF,
+            SSL_ERROR
         } errorCode;
-        ClientException(ErrorCode code) : errorCode(code) {};
+        int sslErrorNumber;
+        string additionalInfo;
+        ClientException(ErrorCode code, int sslError = 0, string info = "") :
+                errorCode(code),
+                sslErrorNumber(sslError),
+                additionalInfo(info) {};
     };
 };
 
