@@ -59,7 +59,6 @@ void Client::runClient() {
                 cerr << "Failure while creating socket." << endl;
                 break;
             case ClientException::ErrorCode::LOGGING_IN_FAILURE:
-                cerr << "Logging in failed because of: " << e.additionalInfo << endl;
                 break;
             case ClientException::ErrorCode::LOGGING_OFF:
                 cerr << "Logging out" << endl;
@@ -101,45 +100,30 @@ void Client::prepare() {
 void Client::getDataToTransfer() {
     int c;
     while (1) {
-        cout << "Co chcesz wyslac" << endl;
-        cout << "1 - BOOKING" << endl;
-        cout << "2 - ACCESS_REQUEST" << endl;
-        cout << "3 - FAIL" << endl;
-        cout << "4 - SUCCESS" << endl;
-        cout << "5 - MACHINE_DATA" << endl;
-        cout << "6 - BOOKING_LOG" << endl;
-        cout << "7 - LOGGING_OUT" << endl;
+        cout << "What do you want to do?" << endl;
+        cout << "1 - Book an access." << endl;
+        cout << "2 - Request access from this ip." << endl;
+        cout << "3 - Get booking log for the machine." << endl;
+        cout << "4 - Log out." << endl;
         cin >> c;
         switch (c) {
-            case MessageType::BOOKING:
-                sendBookingRequestMessage();;
+            case 1:
+                sendBookingRequestMessage();
                 break;
 
-            case MessageType::ACCESS_REQUEST:
+            case 2:
                 sendAccessRequestMessage();
                 break;
 
-            case MessageType::FAIL:
-                sendFailMessage();
-                break;
-
-            case MessageType::SUCCESS:
-                sendSuccessMessage();
-                break;
-
-            case MessageType::MACHINE_DATA:
-                sendMachineDataRequestMessage();
-                break;
-
-            case MessageType::BOOKING_LOG:
+            case 3:
                 sendBookingLogRequestMessage();
                 break;
-            case MessageType::LOGGING_OFF:
-                throw ClientException(ClientException::LOGGING_OFF);
-            default:
-                cout << "Nie poprawna wartość" << endl;
-                return;
 
+            case 4:
+                throw ClientException(ClientException::LOGGING_OFF);
+
+            default:
+                cout << "Incorrect choice" << endl;
         }
     }
 }
@@ -205,20 +189,15 @@ void Client::logIn() {
     strcpy(loggingMessage.login, login);
     strcpy(loggingMessage.password, password);
     message.messageData.loggingMessage = loggingMessage;
-    sendData(message);
 
-    message = receiveData();
-    if (message.messageType == SUCCESS)
-        cout << "Logging successful" << endl;
-    else
-        throw ClientException(ClientException::ErrorCode::LOGGING_IN_FAILURE,
-                              0,
-                              string(message.messageData.failMessage));
+    sendData(message);
+    if (!handleResponse())
+        throw ClientException(ClientException::ErrorCode::LOGGING_IN_FAILURE);
 }
 
 void Client::logOut() {
     Message message;
-    message.messageType = LOGGING_OFF;
+    message.messageType = LOGGING_OUT;
     sendData(message);
 }
 
@@ -231,13 +210,15 @@ void Client::sendBookingRequestMessage() {
     Message message;
     message.messageType = MessageType::BOOKING;
     Message::MessageData::BookingMessage bookingMessage;
-    cout << "Podaj id" << endl;
-    uint32_t id;
-    cin >> id;
-    bookingMessage.id = id;
-    time(&bookingMessage.data);
+    cout << "Machine id: " << endl;
+    cin >> bookingMessage.id;
+    // TODO wprowadzanie daty
+    cout << "Using current time..." << endl;
+    time(&bookingMessage.date);
     message.messageData.bookingMessage = bookingMessage;
+
     sendData(message);
+    handleResponse();
 }
 
 void Client::sendAccessRequestMessage() {
@@ -249,42 +230,6 @@ void Client::sendAccessRequestMessage() {
 void Client::sendBookingLogRequestMessage() {
     Message message;
     message.messageType = MessageType::BOOKING_LOG;
-    sendData(message);
-}
-
-void Client::sendMachineDataRequestMessage() {
-    Message message;
-    uint32_t id;
-    message.messageType = MessageType::MACHINE_DATA;
-    Message::MessageData::MachineDataMessage machineDataMessage;
-    cout << "Podaj id" << endl;
-    cin >> id;
-    cout << "Podaj informacje" << endl;
-    char information[32];
-    cin >> information;
-    strcpy(machineDataMessage.information, information);
-    machineDataMessage.id = id;
-    message.messageData.machineDataMessage = machineDataMessage;
-    sendData(message);
-}
-
-void Client::sendSuccessMessage() {
-    Message message;
-    message.messageType = MessageType::SUCCESS;
-    cout << "Podaj wiadomosc sukcesu" << endl;
-    char successMessage[64];
-    cin >> successMessage;
-    strcpy(message.messageData.successMessage, successMessage);
-    sendData(message);
-}
-
-void Client::sendFailMessage() {
-    Message message;
-    message.messageType = MessageType::FAIL;
-    cout << "Podaj wiadomosc bledu" << endl;
-    char failMessage[64];
-    cin >> failMessage;
-    strcpy(message.messageData.failMessage, failMessage);
     sendData(message);
 }
 
@@ -317,6 +262,19 @@ Message Client::receiveData() {
     }
     return buf;
 }
+
+bool Client::handleResponse() {
+    Message message = receiveData();
+    if (message.messageType == MessageType::SUCCESS) {
+        cout << message.messageData.successMessage << endl;
+        return true;
+    } else {
+        cerr << message.messageData.failMessage << endl;
+        return false;
+    }
+}
+
+
 
 
 

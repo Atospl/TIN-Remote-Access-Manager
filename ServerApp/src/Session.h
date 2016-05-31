@@ -20,7 +20,7 @@ using namespace std;
 
 class Session {
 public:
-    Session(int cls, int adr, SSL_CTX *ctx) : clientSocket(cls), ip4Address(adr) {
+    Session(int cls, int adr, SSL_CTX *ctx) : clientSocket(cls), ip4Address(adr), verified(false) {
         ssl = SSL_new(ctx);
     };
     Session() {}
@@ -57,10 +57,12 @@ private:
 
     void handleLoginMessage(char *login, char *password);
 
-
+    void sendData(Message);
 
     int clientSocket;
     int ip4Address;
+    bool verified;
+    string userLogin;
 
     // SSL parameters
     SSL *ssl;

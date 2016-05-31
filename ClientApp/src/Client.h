@@ -34,6 +34,8 @@ private:
     // wyslanie danych
     void sendData(Message message);
 
+    bool handleResponse();
+
     Message receiveData();
 
     void getDataToTransfer();

@@ -78,11 +78,13 @@ void Session::SSLHandshake() {
 void Session::handleMessage(Message message) {
     switch (message.messageType) {
         case MessageType::LOGGING:
-            handleLoginMessage(message.messageData.loggingMessage.login, message.messageData.loggingMessage.password);
+            handleLoginMessage(message.messageData.loggingMessage.login,
+                               message.messageData.loggingMessage.password);
             break;
 
         case MessageType::BOOKING:
-            handleBookingRequestMessage(message.messageData.bookingMessage.id, message.messageData.bookingMessage.data);
+            handleBookingRequestMessage(message.messageData.bookingMessage.id,
+                                        message.messageData.bookingMessage.date);
             break;
 
         case MessageType::ACCESS_REQUEST:
@@ -97,14 +99,12 @@ void Session::handleMessage(Message message) {
             handleSuccessMessage(message.messageData.successMessage);
             break;
 
-        case MessageType::MACHINE_DATA:
-            handleMachineDataRequestMessage(message.messageData.machineDataMessage.id, message.messageData.machineDataMessage.information);
-            break;
 
         case MessageType::BOOKING_LOG:
             handleBookingLogRequestMessage();
             break;
-        case MessageType::LOGGING_OFF:
+
+        case MessageType::LOGGING_OUT:
             cout << "LOGGING_OFF" << endl;
             throw SessionException(SessionException::ErrorCode::LOGGING_OFF);
     }
@@ -127,11 +127,6 @@ bool Session::verifyUser(char * login, char * password) {
 //                return true;
 //            }
     }
-
-    message.messageType = MessageType::FAIL;
-    void* pointer = (void*) &message;
-    if (SSL_write(ssl, pointer, sizeof (Message)) == 0)
-        ERR_print_errors_fp(stderr);
     return false;
 }
 
@@ -140,6 +135,10 @@ void Session::handleBookingRequestMessage(uint32_t id, time_t data) {
     cout << "id: " << id << endl;
     cout << "data: " << data << endl;
 
+    Message message;
+    message.messageType = MessageType::FAIL;
+    strcpy(message.messageData.failMessage, "Not yet implemented.");
+    sendData(message);
 }
 
 void Session::handleAccessRequestMessage() {
@@ -171,7 +170,18 @@ void Session::handleLoginMessage(char * login, char * password ){
     cout << "LOGGING" << endl;
     cout << "login: " << login << endl;
     cout << "password: " << password << endl;
-    verifyUser(login, password);
+
+    Message message;
+
+    if (verified = verifyUser(login, password)) {
+        message.messageType = MessageType::SUCCESS;
+        strcpy(message.messageData.successMessage, "Logging successful");
+        userLogin = login;
+    } else {
+        message.messageType = MessageType::FAIL;
+        strcpy(message.messageData.failMessage, "Bad credentials");
+    }
+    sendData(message);
 }
 
 string Session::sha512(string password) {
@@ -193,6 +203,13 @@ string Session::to_hex(unsigned char s) {
     ss << hex << (int) s;
     return ss.str();
 }
+
+void Session::sendData(Message message) {
+    if (SSL_write(ssl, &message, sizeof (Message)) == 0)
+        throw SessionException(SessionException::ErrorCode::SSL_ERROR);
+}
+
+
 
 
 
