@@ -6,6 +6,7 @@
 #include <arpa/inet.h>
 #include <openssl/bio.h>
 #include <openssl/ssl.h>
+#include <sstream>
 #include <openssl/err.h>
 #include <openssl/sha.h>
 #include "Session.h"
@@ -111,21 +112,12 @@ void Session::handleMessage(Message message) {
 
 bool Session::verifyUser(char * login, char * password) {
     Message message;
-   /* vector<client> clients = FileController::getInstance().getClients();
-    unsigned char digest[SHA512_DIGEST_LENGTH];
-
-    *//* @TODO SHA512 hash creation - move to separate function *//*
-    SHA512((unsigned char*)&password,
-           strlen(password),
-           (unsigned char*)&digest);
-    char hexDigest[SHA512_DIGEST_LENGTH*2+1];
-    for(int i=0; i < SHA512_DIGEST_LENGTH; ++i)
-        sprintf(&hexDigest[i*2], "%02x", (unsigned int)digest[i]);
-    *//*********************************************************//*
+    vector<client> clients = FileController::getInstance().getClients();
+    string hash = sha512(string(password));
 
     for(auto i : clients) {
         if (i.login == login)
-            if (i.passHash.compare(hexDigest) == 0) {
+            if (i.passHash.compare(hash) == 0) {
                 message.messageType = MessageType::SUCCESS;
                 void* pointer = (void*) &message;
                 if (SSL_write(ssl, pointer, sizeof (Message)) == 0)
@@ -138,13 +130,7 @@ bool Session::verifyUser(char * login, char * password) {
     void* pointer = (void*) &message;
     if (SSL_write(ssl, pointer, sizeof (Message)) == 0)
         ERR_print_errors_fp(stderr);
-    return false;*/
-
-    message.messageType = MessageType::SUCCESS;
-    void* pointer = (void*) &message;
-    if (SSL_write(ssl, pointer, sizeof (Message)) == 0)
-        ERR_print_errors_fp(stderr);
-
+    return false;
 }
 
 void Session::handleBookingRequestMessage(uint32_t id, time_t data) {
@@ -183,6 +169,27 @@ void Session::handleLoginMessage(char * login, char * password ){
     cout << "password: " << password << endl;
     verifyUser(login, password);
 }
+
+string Session::sha512(string password) {
+    unsigned char hash[SHA512_DIGEST_LENGTH];
+    SHA512_CTX sha256;
+    SHA512_Init(&sha256);
+    SHA512_Update(&sha256, password.c_str(), password.length());
+    SHA512_Final(hash, &sha256);
+
+    string output = "";
+    for(int i = 0; i < SHA512_DIGEST_LENGTH; i++) {
+        output += to_hex(hash[i]);
+    }
+    return output;
+}
+
+string Session::to_hex(unsigned char s) {
+    stringstream ss;
+    ss << hex << (int) s;
+    return ss.str();
+}
+
 
 
 

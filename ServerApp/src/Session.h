@@ -23,17 +23,22 @@ public:
     Session(int cls, int srvs, int adr, SSL_CTX *ctx) : clientSocket(cls), serverSocket(srvs), ip4Address(adr) {
         ssl = SSL_new(ctx);
     };
+    Session() {}
     ~Session() {
         SSL_free(ssl);
         close(clientSocket);
     }
     void run();
-
+    bool verifyUser(char *login, char *password);
 private:
     // initializes openssl BIO structure
     void initializeSSLBIO();
     // performs server-side handshake
     void SSLHandshake();
+    // hashes given string
+    string sha512(string password);
+    // converts char to hex
+    string to_hex(unsigned char s);
 
     //Handles client's message
     void handleMessage(Message message);
@@ -52,7 +57,7 @@ private:
 
     void handleLoginMessage(char *login, char *password);
 
-    bool verifyUser(char *login, char *password);
+
 
     int clientSocket;
     int serverSocket;
