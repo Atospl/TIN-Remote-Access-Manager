@@ -111,21 +111,14 @@ vector<client> FileController::getClients() {
     {
         vector<string> values = getValuesCsv(line);
         client client;
-
-        if(values.size() != 3 || !isNumber(values[1]) || !isNumber(values[2]))
-            //if(values.size() != 3)
+        if(values.size() != 3 || !isNumber(values[1], true) || !isNumber(values[2]))
             continue;
 
         client.login = values[0];
-
-        //if(number(values[1])) sprawdzić czy liczba
         client.passHash = values[1];
-
         client.salt = stoul(values[2]);
-
         clients.push_back(client);
     }
-
     return clients;
 }
 
@@ -304,9 +297,9 @@ vector<string> FileController::getValuesCsv(string line) {
     return result;
 }
 
-bool FileController::isNumber(const std::string& str) {
-    std::string::const_iterator it = str.begin();
-    while (it != str.end() && isdigit(*it))
-        ++it;
-    return !str.empty() && it == str.end();
+bool FileController::isNumber(const std::string& str, bool isHex) {
+    if (isHex)
+        return !str.empty() && str.find_first_not_of("0123456789abcdefABCDEF") == string::npos;
+    else
+        return !str.empty() && str.find_first_not_of("0123456789") == string::npos;
 }

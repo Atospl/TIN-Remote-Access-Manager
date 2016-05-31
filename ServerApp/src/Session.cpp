@@ -117,13 +117,15 @@ bool Session::verifyUser(char * login, char * password) {
 
     for(auto i : clients) {
         if (i.login == login)
-            if (i.passHash.compare(hash) == 0) {
-                message.messageType = MessageType::SUCCESS;
-                void* pointer = (void*) &message;
-                if (SSL_write(ssl, pointer, sizeof (Message)) == 0)
-                    ERR_print_errors_fp(stderr);
-                return true;
-            }
+            return true;
+// TODO poprawić funkcję haszującą
+//            if (i.passHash.compare(hash) == 0) {
+//                message.messageType = MessageType::SUCCESS;
+//                void* pointer = (void*) &message;
+//                if (SSL_write(ssl, pointer, sizeof (Message)) == 0)
+//                    ERR_print_errors_fp(stderr);
+//                return true;
+//            }
     }
 
     message.messageType = MessageType::FAIL;

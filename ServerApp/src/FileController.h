@@ -45,7 +45,7 @@ public:
 
 private:
     FileController(){};
-    bool isNumber(const std::string&);
+    bool isNumber(const std::string&, bool isHex = false);
 };
 
 
