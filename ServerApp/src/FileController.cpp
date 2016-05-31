@@ -11,11 +11,6 @@
 
 using namespace std;
 
-//static const string machineFilePath = "congif/machine";
-//static const string reservationsFilePath = "config/reservations";
-////static const string clientsFilePath = "/home/maciek/Filecontroller/config/clients";
-//static const string clientsFilePath = FilesPaths::getInstance().getClientsPath();
-
 mutex clientsFileMutex;
 mutex reservationsFileMutex;
 mutex machineFileMutex;
@@ -153,7 +148,13 @@ vector<reservation> FileController::getReservations() {
         vector<string> values = getValuesCsv(line);
 
 
-        if(values.size() != 7 || !isNumber(values[1]) || !isNumber(values[2])  || !isNumber(values[3]) || !isNumber(values[4]) || !isNumber(values[5]) || !isNumber(values[6]))
+        if(values.size() != 7 ||
+                !isNumber(values[1]) ||
+                !isNumber(values[2]) ||
+                !isNumber(values[3]) ||
+                !isNumber(values[4]) ||
+                !isNumber(values[5]) ||
+                !isNumber(values[6]))
             continue;
 
         reservation reservation;
@@ -190,16 +191,12 @@ bool FileController::addReservation(std::string userLogin, int machineId, time_t
     ifstream reservationsFile;
     reservationsFile.open(FilesPaths::getInstance().getReservationsPath());
 
-    if(reservationsFile.is_open())
-    {
-        //cout << "Reservations file opened!" << endl;
+    if(reservationsFile.is_open()) {
         str << reservationsFile.rdbuf();
         reservationsFile.close();
-    }
-    else
-    {
+    } else {
         reservationsFileMutex.unlock();
-        cout<<"Error opening reservations file"<<endl;
+        cout<<"Error opening reservations file."<<endl;
         return false;
     }
     // ignore first line
@@ -210,9 +207,13 @@ bool FileController::addReservation(std::string userLogin, int machineId, time_t
     {
         vector<string> values = getValuesCsv(line);
 
-        //unsigned long i = values.size();
-
-        if(values.size() != 7 || !isNumber(values[1]) || !isNumber(values[2])  || !isNumber(values[3]) || !isNumber(values[4]) || !isNumber(values[5]) || !isNumber(values[6]))
+        if(values.size() != 7 ||
+                !isNumber(values[1]) ||
+                !isNumber(values[2]) ||
+                !isNumber(values[3]) ||
+                !isNumber(values[4]) ||
+                !isNumber(values[5]) ||
+                !isNumber(values[6]))
             continue;
 
         reservation reservation;

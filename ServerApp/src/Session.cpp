@@ -131,14 +131,21 @@ bool Session::verifyUser(char * login, char * password) {
     return false;
 }
 
-void Session::handleBookingRequestMessage(uint32_t id, time_t data) {
+void Session::handleBookingRequestMessage(uint32_t id, time_t date) {
     cout << "BOOKING" << endl;
-    cout << "id: " << id << endl;
-    cout << "data: " << data << endl;
+    cout << "Machine id: " << id << endl;
+    cout << "Date: " << date << endl;
+
+    bool result = FileController::getInstance().addReservation(userLogin, id, date);
 
     Message message;
-    message.messageType = MessageType::FAIL;
-    strcpy(message.messageData.failMessage, "Not yet implemented.");
+    if (result) {
+        message.messageType = MessageType::SUCCESS;
+        strcpy(message.messageData.failMessage, "Reservation added successfully.");
+    } else {
+        message.messageType = MessageType::FAIL;
+        strcpy(message.messageData.failMessage, "Reservation failed. Please choose another date.");
+    }
     sendData(message);
 }
 
