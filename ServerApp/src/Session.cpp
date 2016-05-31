@@ -132,32 +132,48 @@ bool Session::verifyUser(char * login, char * password) {
 }
 
 void Session::handleBookingRequestMessage(uint32_t id, time_t date) {
-    cout << "BOOKING" << endl;
-    cout << "Machine id: " << id << endl;
-    cout << "Date: " << date << endl;
-
-    bool result = FileController::getInstance().addReservation(userLogin, id, date);
-
     Message message;
-    if (result) {
-        message.messageType = MessageType::SUCCESS;
-        strcpy(message.messageData.failMessage, "Reservation added successfully.");
+
+    if (verified) {
+        bool result = FileController::getInstance().addReservation(userLogin, id, date);
+
+        if (result) {
+            message.messageType = MessageType::SUCCESS;
+            strcpy(message.messageData.failMessage, "Reservation added successfully.");
+        } else {
+            message.messageType = MessageType::FAIL;
+            strcpy(message.messageData.failMessage, "Reservation failed. Please choose another date.");
+        }
     } else {
         message.messageType = MessageType::FAIL;
-        strcpy(message.messageData.failMessage, "Reservation failed. Please choose another date.");
+        strcpy(message.messageData.failMessage, "User not verified.");
     }
+
     sendData(message);
 }
 
 void Session::handleAccessRequestMessage() {
-    cout << "ACCESS_REQUEST" << endl;
+    Message message;
 
-}
+    if (verified) {
+        unsigned int minutes = checkAvailableTime();
 
-void Session::handleMachineDataRequestMessage(uint32_t id, char * information) {
-    cout << "MACHINE_DATA" << endl;
-    cout << "id: " << id << endl;
-    cout << "information: " << information << endl;
+        if (minutes != 0) {
+            char buf[16];
+            //IptablesController::grantLimitedAccess(inet_ntop(AF_INET, &ip4Address, buf, 16), minutes);
+            message.messageType = MessageType::SUCCESS;
+            string temp = "Access granted for " + to_string(minutes) + " minutes";
+            strcpy(message.messageData.successMessage, temp.c_str());
+        } else {
+            message.messageType = MessageType::FAIL;
+            strcpy(message.messageData.failMessage, "Access forbidden. You don't have a reservation for this time.");
+        }
+    } else {
+        message.messageType = MessageType::FAIL;
+        strcpy(message.messageData.failMessage, "User not verified.");
+    }
+
+    sendData(message);
 }
 
 void Session::handleBookingLogRequestMessage() {
@@ -175,10 +191,6 @@ void Session::handleFailMessage(char *failMessage) {
 }
 
 void Session::handleLoginMessage(char * login, char * password ){
-    cout << "LOGGING" << endl;
-    cout << "login: " << login << endl;
-    cout << "password: " << password << endl;
-
     Message message;
 
     if (verified = verifyUser(login, password)) {
@@ -189,6 +201,7 @@ void Session::handleLoginMessage(char * login, char * password ){
         message.messageType = MessageType::FAIL;
         strcpy(message.messageData.failMessage, "Bad credentials");
     }
+
     sendData(message);
 }
 
@@ -216,6 +229,31 @@ void Session::sendData(Message message) {
     if (SSL_write(ssl, &message, sizeof (Message)) == 0)
         throw SessionException(SessionException::ErrorCode::SSL_ERROR);
 }
+
+unsigned int Session::checkAvailableTime() {
+    auto wholeList = FileController::getInstance().getReservations();
+    vector<reservation> personalList;
+
+    for (auto itr : wholeList) { // get reservations by user's login
+        if (itr.userLogin == userLogin)
+            personalList.push_back(itr);
+    }
+
+    time_t currentTime = time(nullptr);
+    time_t timeHourAgo = currentTime - (60/*seconds*/ * 60/*minutes*/);
+
+    for (auto itr : personalList) {
+        if (itr.date > timeHourAgo && itr.date < currentTime) {
+            unsigned int minutes = (itr.date + (60 * 60)) - currentTime;
+            minutes /= 60;
+            return minutes;
+        }
+    }
+
+    return 0;
+}
+
+
 
 
 

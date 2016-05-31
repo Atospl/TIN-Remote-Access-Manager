@@ -59,6 +59,8 @@ private:
 
     void sendData(Message);
 
+    unsigned int checkAvailableTime();
+
     int clientSocket;
     int ip4Address;
     bool verified;

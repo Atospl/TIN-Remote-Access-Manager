@@ -224,7 +224,9 @@ void Client::sendBookingRequestMessage() {
 void Client::sendAccessRequestMessage() {
     Message message;
     message.messageType = MessageType::ACCESS_REQUEST;
+
     sendData(message);
+    handleResponse();
 }
 
 void Client::sendBookingLogRequestMessage() {
