@@ -12,51 +12,51 @@
 #include "Session.h"
 #include "../../Shared/Message.h"
 #include "FileController.h"
+#include "IptablesController.h"
 
 void Session::run() {
     // perform necessary SSL operations
     initializeSSLBIO();
     SSLHandshake();
 
-    int rval;
     Message buf;
-    int ssl_error;
+    char* pBuf = (char *)&buf;
+    short bytesToRead = sizeof(Message);
+
+    int bytesRead = 0;
+    int readValue = 0;
+
     try {
-        while (1) {
-            if ((rval = SSL_read(ssl, &buf, sizeof(Message))) == 0)
-                ERR_print_errors_fp(stderr);
-            switch (ssl_error = SSL_get_error(ssl, rval)) {
-                case SSL_ERROR_NONE:
-                    cout << "SSL_ERROR_NONE" << endl;
-                    break;
+        while (true) {
+            readValue = SSL_read(ssl, pBuf, bytesToRead);
 
-                case SSL_ERROR_ZERO_RETURN:
-                    //connection closed by client, clean up
-                    throw SessionException(SessionException::ErrorCode::SSL_ZERO_RETURN);
-
-                case SSL_ERROR_WANT_READ:
-                    //the operation did not complete, block the read
-                    throw SessionException(SessionException::ErrorCode::SSL_WANT_READ);
-
-                case SSL_ERROR_WANT_WRITE:
-                    //the operation did not complete
-                    throw SessionException(SessionException::ErrorCode::SSL_WANT_WRITE);
-
-                case SSL_ERROR_SYSCALL:
-                    //some I/O error occured (could be caused by false start in Chrome for instance), disconnect the client and clean up
-                    cout << "SSL_ERROR_SYSCALL" << endl;
-                    throw SessionException(SessionException::ErrorCode::SSL_SYSCALL);
-                default:
-                    cout << "default" << endl;
+            if (readValue > 0) { // something was read, check if it is enough
+                bytesRead += readValue;
+                if (bytesRead == sizeof(Message)) {
+                    handleMessage(buf);
+                    pBuf = (char *)&buf;
+                    bytesToRead = sizeof(Message);
+                    bytesRead = 0;
+                } else {
+                    bytesToRead = sizeof(Message) - bytesRead;
+                    pBuf = (char *)&buf + bytesRead;
+                }
+            } else { // an error occured
+                int errorNumber = SSL_get_error(ssl, readValue);
+                if (errorNumber == SSL_ERROR_WANT_READ)
+                    continue;
+                else
+                    throw SessionException(SessionException::ErrorCode::SSL_ERROR, errorNumber);
             }
-            while(rval != sizeof(Message))
-                cout<<"Read incomplete " << rval << endl;
-            if (rval == sizeof(Message))
-                handleMessage(buf);
+
         }
-    }
-    catch (SessionException e) {
-        cout<<"Closing " << endl;
+
+    } catch (SessionException e){
+        if (e.errorCode == SessionException::ErrorCode::SSL_ERROR)
+            if (e.sslErrorNumber == SSL_ERROR_SYSCALL)
+                cerr << "Connection ended" << endl;
+            else
+                cerr << "SSL error: " << e.sslErrorNumber;
         close(clientSocket);
         delete this;
     }
@@ -137,10 +137,12 @@ void Session::handleBookingRequestMessage(uint32_t id, time_t data) {
     cout << "BOOKING" << endl;
     cout << "id: " << id << endl;
     cout << "data: " << data << endl;
+
 }
 
 void Session::handleAccessRequestMessage() {
     cout << "ACCESS_REQUEST" << endl;
+
 }
 
 void Session::handleMachineDataRequestMessage(uint32_t id, char * information) {
