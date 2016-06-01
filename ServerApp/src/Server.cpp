@@ -19,6 +19,22 @@ bool Server::running = false;
 int Server::port = 8765;
 int Server::maxWaitingConns = 10;
 
+Server::Server(){
+    string x = FilesPaths::getInstance().getServerCertPath();
+    certPath = new char[x.length() + 1];
+    strcpy(certPath, x.c_str());
+
+    x = FilesPaths::getInstance().getServerKeyPath();
+    keyPath = new char[x.length() + 1];
+    strcpy(keyPath, x.c_str());
+
+    x = FilesPaths::getInstance().getCaCertPath();
+    caCertPath = new char[x.length() + 1];
+    strcpy(caCertPath, x.c_str());
+
+    port = FilesPaths::getInstance().getServerPort();
+};
+
 Server::~Server() {
     if (running)
         close(serverSocket);
@@ -166,5 +182,4 @@ void Server::initializeSSL_CTX() {
     }
 
 }
-
 
