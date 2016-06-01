@@ -11,7 +11,7 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include "../../Shared/Message.h"
-
+#include "FilesPaths.h"
 
 using namespace std;
 
@@ -31,7 +31,7 @@ public:
 
 private:
     // zablokowany konstruktor domyślny (singleton)
-    Server(){};
+    Server();
     // nasłuchuj i twórz wątki
     void listenForClients();
     // przygotuj serwer pod przyjmowanie klientów
@@ -53,9 +53,9 @@ private:
     int certfd;
     int keyfd;
 
-    static constexpr char *certPath = (char*)"../.ssl/serverCert.pem";
-    static constexpr char *keyPath = (char*)"../.ssl/serverKey.pem";
-    static constexpr char *caCertPath = (char*)"../.ssl/cacert.pem";
+    char *certPath;// = (char*)"../.ssl/serverCert.pem";
+    char *keyPath;// = (char*)"../.ssl/serverKey.pem";
+    char *caCertPath;// = (char*)"../.ssl/cacert.pem";
 
 
     struct ServerException {
