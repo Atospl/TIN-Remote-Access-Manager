@@ -48,9 +48,9 @@ private:
 
     void sendBookingLogRequestMessage();
 
-    void sendSuccessMessage();
+    bool isInteger(const std::string & s);
 
-    void sendFailMessage();
+    bool isCorrectDate(std::string, int, int);
 
     void logIn();
 

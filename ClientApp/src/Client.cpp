@@ -212,13 +212,55 @@ void Client::sendBookingRequestMessage() {
     Message::MessageData::BookingMessage bookingMessage;
     cout << "Machine id: " << endl;
     cin >> bookingMessage.id;
-    // TODO wprowadzanie daty
-    cout << "Using current time..." << endl;
-    time(&bookingMessage.date);
-    message.messageData.bookingMessage = bookingMessage;
 
-    sendData(message);
-    handleResponse();
+    string date;
+    string year;
+    string month;
+    string day;
+    string hour;
+    string minute;
+
+    cout << "Date ( format: hour/minute/day/mth/year )" << endl;
+    cin >> date;
+    if (count(date.begin(), date.end(), '/') == 4) {
+
+        hour = date.substr(0, date.find('/'));
+        date = date.substr(hour.length() + 1);
+        minute = date.substr(0, date.find('/'));
+        date = date.substr(minute.length() + 1);
+        day = date.substr(0, date.find('/'));
+        date = date.substr(day.length() + 1);
+        month = date.substr(0, date.find('/'));
+        date = date.substr(month.length() + 1);
+        year = date;
+
+        if (isInteger(year) && isCorrectDate(month, 1, 12) && isCorrectDate(day, 1, 31)
+            && isCorrectDate(hour, 0, 23) && isCorrectDate(minute, 0, 59)) {
+
+            time_t rawtime;
+            struct tm * bookingTime = localtime(&rawtime);
+
+            bookingTime->tm_year = stoi(year) - 1900;
+            bookingTime->tm_mon = stoi(month) - 1; // 0-11
+            bookingTime->tm_mday = stoi(day);
+            bookingTime->tm_hour = stoi(hour);
+            bookingTime->tm_min = stoi(minute);
+            bookingTime->tm_sec = 0;
+            bookingTime->tm_isdst = -1;
+
+            bookingMessage.date = mktime(bookingTime);
+            message.messageData.bookingMessage = bookingMessage;
+
+            sendData(message);
+            handleResponse();
+        }
+        else{
+            cerr << "Wrong values" << endl;
+        }
+    }
+    else {
+        cerr << "Wrong date format" << endl;
+    }
 }
 
 void Client::sendAccessRequestMessage() {
@@ -237,7 +279,7 @@ void Client::sendBookingLogRequestMessage() {
 
 Message Client::receiveData() {
     Message buf;
-    char* pBuf = (char *)&buf;
+    char *pBuf = (char *) &buf;
     short bytesToRead = sizeof(Message);
 
     int bytesRead = 0;
@@ -252,7 +294,7 @@ Message Client::receiveData() {
                 break;
             } else {
                 bytesToRead = sizeof(Message) - bytesRead;
-                pBuf = (char *)&buf + bytesRead;
+                pBuf = (char *) &buf + bytesRead;
             }
         } else { // an error occured
             int errorNumber = SSL_get_error(ssl, readValue);
@@ -275,6 +317,20 @@ bool Client::handleResponse() {
         return false;
     }
 }
+
+bool Client::isCorrectDate(string val, int lowerThan, int biggerThan) {
+    return (isInteger(val) && (stoi(val) >= lowerThan)
+            && (stoi(val) <= biggerThan));
+}
+
+bool Client::isInteger(const std::string &str) {
+    return !str.empty() && str.find_first_not_of("0123456789") == string::npos;
+}
+
+
+
+
+
 
 
 
