@@ -304,3 +304,28 @@ bool FileController::isNumber(const std::string& str, bool isHex) {
     else
         return !str.empty() && str.find_first_not_of("0123456789") == string::npos;
 }
+
+time_t FileController::firstAvailableDate(time_t date)
+{
+    vector<reservation> reservations = getReservations();
+
+    bool dateLegal = false;
+
+    while(!dateLegal)
+    {
+        dateLegal = true;
+        for(auto i : reservations)
+            if(abs(difftime(i.date, date)) < 3600)
+            {
+                dateLegal = false;
+
+                struct tm * dateTm = localtime(&i.date);
+                dateTm->tm_hour = dateTm->tm_hour + 1;
+                date = mktime(dateTm);
+
+                break;
+            }
+    }
+
+    return date;
+}
