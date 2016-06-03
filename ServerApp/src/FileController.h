@@ -42,6 +42,8 @@ public:
     machine getMachine();
     bool addReservation(std::string userLogin, int machineId, time_t date);
     std::vector<std::string> static getValuesCsv(std::string);
+    time_t firstAvailableDate(time_t);
+
 
 private:
     FileController(){};
