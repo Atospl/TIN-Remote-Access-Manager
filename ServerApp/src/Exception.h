@@ -24,4 +24,11 @@ struct SessionException {
     SessionException(ErrorCode code, int sslErrorNumber = 0) : errorCode(code), sslErrorNumber(sslErrorNumber) {};
 };
 
+struct FileHandlerException {
+    enum ErrorCode {
+        FILE_OPEN
+    } errorCode;
+    FileHandlerException(ErrorCode code) : errorCode(code) {};
+};
+
 #endif //SERVERAPP_EXCEPTION_H

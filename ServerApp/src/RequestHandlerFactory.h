@@ -7,6 +7,7 @@
 
 #include <Poco/Net/HTTPRequestHandlerFactory.h>
 #include <Poco/Net/HTTPServerRequest.h>
+#include "HTTPSRequestHandler.h"
 
 class RequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory {
 public:
@@ -15,8 +16,8 @@ public:
 
     Poco::Net::HTTPRequestHandler* createRequestHandler(const Poco::Net::HTTPServerRequest& request)
     {
-//        if (request.getURI() == "/")
-//            return new RootHandler();
+        if (request.getURI() == "/")
+            return (Poco::Net::HTTPRequestHandler*) new RootHandler();
 //        else
 //            return new DataHandler();
     }
