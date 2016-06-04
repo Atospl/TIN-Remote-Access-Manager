@@ -10,9 +10,6 @@ if [ $(cat /proc/sys/net/ipv4/ip_forward) -eq 1 ]; then # sprawdz, czy dozwolone
     sudo iptables -P FORWARD DROP
     sudo iptables -t nat -A PREROUTING -i $PUBLIC_INTERFACE -p tcp --dport 22 -j DNAT --to $MACHINE_IP:22   # kieruj wszystkie polaczenia z danego portu na port kontrolowanej maszyny
     sudo iptables -t nat -A POSTROUTING -o $PRIVATE_INTERFACE -j MASQUERADE # maskuj te polaczenia jako wychodzace z tej maszyny (potrzebne do response'ow)
-    cd HTTPServer                       # odpal serwer HTTPS
-    sudo python server.py &
-    cd ..
     cd Debug
     sudo ./ServerApp                    # odpal serwer
     cd ..
