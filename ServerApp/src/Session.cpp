@@ -11,6 +11,7 @@
 #include <openssl/err.h>
 #include <openssl/sha.h>
 #include "Session.h"
+#include "Exception.h"
 #include "../../Shared/Message.h"
 #include "FileController.h"
 #include "IptablesController.h"

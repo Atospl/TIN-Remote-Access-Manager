@@ -18,29 +18,29 @@ using namespace std;
 class Server {
 public:
     // zmienia domyślny port dla serwera
-    static bool setDefaultPort(int);
+    virtual static bool setDefaultPort(int);
     // zmienia liczbę możliwych oczekujących połączeń
-    static bool setMaxWaitingConns(int);
+    virtual static bool setMaxWaitingConns(int);
     // pobranie z pliku konfiguracyjnego
-    static bool setServerPortAndName();
+    virtual static bool setServerPortAndName();
     // pobierz instancję serwera (singleton)
-    static Server& getServer();
+    virtual static Server& getServer();
     // uruchom serwer
-    void runServer();
-    ~Server();
+    virtual void runServer();
+    virtual ~Server();
 
-private:
+protected:
     // zablokowany konstruktor domyślny (singleton)
     Server();
     // nasłuchuj i twórz wątki
-    void listenForClients();
+    virtual void listenForClients();
     // przygotuj serwer pod przyjmowanie klientów
-    void prepare();
+    virtual void prepare();
 
     // initialize openSSL library
-    void initializeSSL();
+    virtual void initializeSSL();
     // initializes SSL conntext parameters
-    void initializeSSL_CTX();
+    virtual void initializeSSL_CTX();
 
     static bool running;
     static int port;
@@ -57,16 +57,6 @@ private:
     char *keyPath;// = (char*)"../.ssl/serverKey.pem";
     char *caCertPath;// = (char*)"../.ssl/cacert.pem";
 
-
-    struct ServerException {
-        enum ErrorCode {
-            SOCKET_FAILURE,
-            BIND_FAILURE,
-            LISTEN_FAILURE,
-            ACCEPT_FAILURE
-        } errorCode;
-        ServerException(ErrorCode code) : errorCode(code) {};
-    };
 };
 
 

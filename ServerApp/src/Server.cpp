@@ -6,7 +6,7 @@
 #include "../../Shared/Message.h"
 #include <sys/types.h>
 #include <sys/socket.h>
-
+#include "Exception.h"
 #include <netdb.h>
 #include <iostream>
 #include <unistd.h>

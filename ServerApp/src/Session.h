@@ -68,15 +68,6 @@ private:
 
     // SSL parameters
     SSL *ssl;
-    struct SessionException {
-        enum ErrorCode {
-            LOGGING_OFF,
-            SSL_ERROR
-        } errorCode;
-        int sslErrorNumber;
-        SessionException(ErrorCode code, int sslErrorNumber = 0) : errorCode(code), sslErrorNumber(sslErrorNumber) {};
-    };
-
 
 };
 
