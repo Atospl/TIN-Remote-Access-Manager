@@ -24,22 +24,28 @@ public:
         ssl = SSL_new(ctx);
     };
     Session() {}
-    ~Session() {
+    virtual ~Session() {
         SSL_free(ssl);
         close(clientSocket);
     }
-    void run();
-    bool verifyUser(char *login, char *password);
-private:
-    // initializes openssl BIO structure
-    void initializeSSLBIO();
-    // performs server-side handshake
-    void SSLHandshake();
-    // hashes given string
-    string sha512(string password);
-    // converts char to hex
-    string to_hex(unsigned char s);
+    virtual void run();
+    virtual bool verifyUser(char *login, char *password);
 
+protected:
+    // initializes openssl BIO structure
+    virtual void initializeSSLBIO();
+    // performs server-side handshake
+    virtual void SSLHandshake();
+    // hashes given string
+    virtual string sha512(string password);
+    // converts char to hex
+    virtual string to_hex(unsigned char s);
+
+    virtual void sendData(Message);
+
+    virtual unsigned int checkAvailableTime();
+
+private:
     //Handles client's message
     void handleMessage(Message message);
 
@@ -57,9 +63,8 @@ private:
 
     void handleLoginMessage(char *login, char *password);
 
-    void sendData(Message);
 
-    unsigned int checkAvailableTime();
+
 
     int clientSocket;
     int ip4Address;

@@ -53,9 +53,9 @@ protected:
     int certfd;
     int keyfd;
 
-    char *certPath;// = (char*)"../.ssl/serverCert.pem";
-    char *keyPath;// = (char*)"../.ssl/serverKey.pem";
-    char *caCertPath;// = (char*)"../.ssl/cacert.pem";
+    char *certPath;
+    char *keyPath;
+    char *caCertPath;
 
 };
 

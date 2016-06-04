@@ -16,6 +16,8 @@ public:
 private:
     /** Singleton's private constructor. Imports certificates, keys and port number from file */
     HTTPServer();
+    /** Wait for clients connection, create new session afterwards */
+    void listenForClients();
 };
 
 
