@@ -9,6 +9,10 @@
 #include <Poco/Net/HTTPServerRequest.h>
 #include "HTTPSRequestHandler.h"
 
+//@TODO debug only
+#include <iostream>
+
+
 class RequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory {
 public:
     RequestHandlerFactory()
@@ -16,10 +20,13 @@ public:
 
     Poco::Net::HTTPRequestHandler* createRequestHandler(const Poco::Net::HTTPServerRequest& request)
     {
-        if (request.getURI() == "/")
-            return (Poco::Net::HTTPRequestHandler*) new RootHandler();
-//        else
-//            return new DataHandler();
+        std::cout << request.getURI() << std::endl;
+        std::cout << request.getMethod() << std::endl;
+        if (request.getURI() == "/" && request.getMethod() == "GET")
+            return (Poco::Net::HTTPRequestHandler*) new RootGetHandler();
+        else
+            if(request.getURI() == "/" && request.getMethod() == "POST")
+                return (Poco::Net::HTTPRequestHandler*) new RootPostHandler();
     }
 };
 

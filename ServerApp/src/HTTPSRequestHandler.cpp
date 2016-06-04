@@ -10,7 +10,6 @@
 void BaseRequestHandler::initFile(std::string path)
 {
     file.open(path);
-
     if(file.is_open())
     {
         stringStream << file.rdbuf();
@@ -21,9 +20,19 @@ void BaseRequestHandler::initFile(std::string path)
 
 }
 
-void RootHandler::handleRequest(Poco::Net::HTTPServerRequest& request,
+void RootGetHandler::handleRequest(Poco::Net::HTTPServerRequest& request,
                                 Poco::Net::HTTPServerResponse& response)
 {
     initFile("/home/atos/Projects/TIN/ServerApp/src/html/index.html");
     response.send() << stringStream.str();
 }
+
+void RootPostHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
+                                    Poco::Net::HTTPServerResponse &response)
+{
+    initFile("/home/atos/Projects/TIN/ServerApp/src/html/reservations.html");
+    //@TODO ADD LOGIN AND SETTING COOKIES!
+//    response.redirect("/html/reservations.html");
+    response.send() << stringStream.str();
+}
+

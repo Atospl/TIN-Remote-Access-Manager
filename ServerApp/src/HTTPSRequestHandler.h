@@ -25,7 +25,14 @@ protected:
     std::stringstream stringStream;
 };
 
-class RootHandler : public BaseRequestHandler
+class RootGetHandler : public BaseRequestHandler
+{
+public:
+    virtual void handleRequest(Poco::Net::HTTPServerRequest& request,
+                               Poco::Net::HTTPServerResponse& response);
+};
+
+class RootPostHandler : public BaseRequestHandler
 {
 public:
     virtual void handleRequest(Poco::Net::HTTPServerRequest& request,
