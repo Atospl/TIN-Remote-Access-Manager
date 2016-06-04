@@ -18,29 +18,29 @@ using namespace std;
 class Server {
 public:
     // zmienia domyślny port dla serwera
-    virtual static bool setDefaultPort(int);
+    static bool setDefaultPort(int);
     // zmienia liczbę możliwych oczekujących połączeń
-    virtual static bool setMaxWaitingConns(int);
+    static bool setMaxWaitingConns(int);
     // pobranie z pliku konfiguracyjnego
-    virtual static bool setServerPortAndName();
+    static bool setServerPortAndName();
     // pobierz instancję serwera (singleton)
-    virtual static Server& getServer();
+    static Server& getServer();
     // uruchom serwer
-    virtual void runServer();
+    void runServer();
     virtual ~Server();
 
 protected:
     // zablokowany konstruktor domyślny (singleton)
     Server();
     // nasłuchuj i twórz wątki
-    virtual void listenForClients();
+    void listenForClients();
     // przygotuj serwer pod przyjmowanie klientów
-    virtual void prepare();
+    void prepare();
 
     // initialize openSSL library
-    virtual void initializeSSL();
+    void initializeSSL();
     // initializes SSL conntext parameters
-    virtual void initializeSSL_CTX();
+    void initializeSSL_CTX();
 
     static bool running;
     static int port;

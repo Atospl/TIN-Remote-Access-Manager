@@ -1,0 +1,14 @@
+//
+// Created by atos on 04.06.16.
+//
+
+#ifndef SERVERAPP_HTTPREQUESTHHANDLER_H
+#define SERVERAPP_HTTPREQUESTHHANDLER_H
+
+
+class HTTPRequestHHandler {
+
+};
+
+
+#endif //SERVERAPP_HTTPREQUESTHHANDLER_H
