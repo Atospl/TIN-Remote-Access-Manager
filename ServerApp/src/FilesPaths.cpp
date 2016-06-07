@@ -66,7 +66,7 @@ bool FilesPaths::init(string buildPath)
             serverAddress = stoi(values[1]);
         else if(values[0] == "SERVERPORT")
             serverPort = stoi(values[1]);
-        else if(values[0] == "httpsPort")
+        else if(values[0] == "HTTPSPORT")
             httpsPort = stoi(values[1]);
     }
 }
