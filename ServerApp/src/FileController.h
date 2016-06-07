@@ -15,7 +15,7 @@ struct client
 {
     std::string login;
     std::string passHash;
-    unsigned long salt;
+    std::string salt;
 };
 
 struct reservation
