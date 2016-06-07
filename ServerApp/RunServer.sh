@@ -3,7 +3,7 @@
 MACHINE_IP="192.168.94.1"   # gdzie ma byc kierowane polaczenie
 PRIVATE_INTERFACE="eth0"    # nazwa interfejsu uzywanego do polaczenia z kontrolowanym urzadzeniem
 PUBLIC_INTERFACE="ham0"     # nazwa interfejsu uzywanego do polaczenia ze swiatem
-PORT="8888"                 # przekierowywany port
+PORT="22"                   # przekierowywany port
 
 if [ $(cat /proc/sys/net/ipv4/ip_forward) -eq 1 ]; then # sprawdz, czy dozwolone sa przekierowania
     sudo iptables -F                    # resetowanie iptables
@@ -17,7 +17,7 @@ if [ $(cat /proc/sys/net/ipv4/ip_forward) -eq 1 ]; then # sprawdz, czy dozwolone
     cd ..
     sudo iptables -F                    # \
     sudo iptables -t nat -F             # -zresetuj iptables po skonczeniu dzialania
-    sudo iptables -P FORWARD ACCEPT     # /
+    sudo iptables -P FORWARD DROP       # /
 else
     echo "Packet forwarding disabled."
     echo "Enable it by changing net.ipv4.ip_forward to 1 in /etc/sysctl.conf."
