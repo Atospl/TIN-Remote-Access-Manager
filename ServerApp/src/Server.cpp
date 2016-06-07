@@ -11,6 +11,10 @@
 #include <iostream>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <iomanip>
+#include <sstream>
+#include "FileController.h"
+#include "IptablesController.h"
 #include <thread>
 
 using namespace std;
@@ -181,5 +185,40 @@ void Server::initializeSSL_CTX() {
         abort();
     }
 
+}
+
+bool Server::verifyUser(const char *login, const char *password) {
+    Message message;
+    vector<client> clients = FileController::getInstance().getClients();
+    string hash = sha512(string(password));
+    cout << clients.size();
+    for(auto i : clients) {
+        if (i.login == login)
+            return true;
+        if (i.passHash.compare(hash) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+string Server::sha512(string password) {
+    unsigned char hash[SHA512_DIGEST_LENGTH];
+    SHA512_CTX sha256;
+    SHA512_Init(&sha256);
+    SHA512_Update(&sha256, password.c_str(), password.length());
+    SHA512_Final(hash, &sha256);
+
+    string output = "";
+    for(int i = 0; i < SHA512_DIGEST_LENGTH; i++) {
+        output += to_hex(hash[i]);
+    }
+    return output;
+}
+
+string Server::to_hex(unsigned char s) {
+    stringstream ss;
+    ss << setfill('0') << setw(2) << hex << (int) s;
+    return ss.str();
 }
 

@@ -15,12 +15,10 @@
 
 /** Abstract base class for request handlers */
 class BaseRequestHandler : public Poco::Net::HTTPRequestHandler {
-public:
-//    virtual void handleRequest(Poco::Net::HTTPServerRequest& request,
-//                       Poco::Net::HTTPServerResponse& response);
+protected:
     /** Initialize file stream, read file to str */
     virtual void initFile(std::string path);
-protected:
+
     std::ifstream file;
     std::stringstream stringStream;
 };

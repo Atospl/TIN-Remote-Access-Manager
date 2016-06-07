@@ -29,13 +29,21 @@ public:
     void runServer();
     virtual ~Server();
 
-protected:
+    /** Validate user's password */
+    bool verifyUser(const char *login, const char *password);
+
+private:
     // zablokowany konstruktor domyślny (singleton)
     Server();
     // nasłuchuj i twórz wątki
     void listenForClients();
     // przygotuj serwer pod przyjmowanie klientów
     void prepare();
+
+    /** hashes given string */
+    string sha512(string password);
+    // converts char to hex
+    string to_hex(unsigned char s);
 
     // initialize openSSL library
     void initializeSSL();

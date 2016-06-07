@@ -29,21 +29,16 @@ public:
         close(clientSocket);
     }
     virtual void run();
-    virtual bool verifyUser(char *login, char *password);
 
 protected:
     // initializes openssl BIO structure
-    virtual void initializeSSLBIO();
+    void initializeSSLBIO();
     // performs server-side handshake
-    virtual void SSLHandshake();
-    // hashes given string
-    virtual string sha512(string password);
-    // converts char to hex
-    virtual string to_hex(unsigned char s);
+    void SSLHandshake();
 
-    virtual void sendData(Message);
+    void sendData(Message);
 
-    virtual unsigned int checkAvailableTime();
+    unsigned int checkAvailableTime();
 
 private:
     //Handles client's message

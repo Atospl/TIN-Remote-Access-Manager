@@ -1,5 +1,7 @@
 reated by https://www.gitignore.io/api/c,c,c++,intellij
 
+ServerApp/src/config/build_default.ini
+
 ### C ###
 # Object files
 *.o

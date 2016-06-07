@@ -8,6 +8,7 @@
 #include <openssl/ssl.h>
 #include <iomanip>
 #include <sstream>
+#include "Server.h"
 #include <openssl/err.h>
 #include <openssl/sha.h>
 #include "Session.h"
@@ -112,25 +113,6 @@ void Session::handleMessage(Message message) {
     }
 }
 
-bool Session::verifyUser(char * login, char * password) {
-    Message message;
-    vector<client> clients = FileController::getInstance().getClients();
-    string hash = sha512(string(password));
-
-    for(auto i : clients) {
-        if (i.login == login)
-            return true;
-            if (i.passHash.compare(hash) == 0) {
-                message.messageType = MessageType::SUCCESS;
-                void* pointer = (void*) &message;
-                if (SSL_write(ssl, pointer, sizeof (Message)) == 0)
-                    ERR_print_errors_fp(stderr);
-                return true;
-            }
-    }
-    return false;
-}
-
 void Session::handleBookingRequestMessage(uint32_t id, time_t date) {
     Message message;
 
@@ -193,7 +175,7 @@ void Session::handleFailMessage(char *failMessage) {
 void Session::handleLoginMessage(char * login, char * password ){
     Message message;
 
-    if (verified = verifyUser(login, password)) {
+    if (verified = Server::getServer().verifyUser(login, password)) {
         message.messageType = MessageType::SUCCESS;
         strcpy(message.messageData.successMessage, "Logging successful");
         userLogin = login;
@@ -203,26 +185,6 @@ void Session::handleLoginMessage(char * login, char * password ){
     }
 
     sendData(message);
-}
-
-string Session::sha512(string password) {
-    unsigned char hash[SHA512_DIGEST_LENGTH];
-    SHA512_CTX sha256;
-    SHA512_Init(&sha256);
-    SHA512_Update(&sha256, password.c_str(), password.length());
-    SHA512_Final(hash, &sha256);
-
-    string output = "";
-    for(int i = 0; i < SHA512_DIGEST_LENGTH; i++) {
-        output += to_hex(hash[i]);
-    }
-    return output;
-}
-
-string Session::to_hex(unsigned char s) {
-    stringstream ss;
-    ss << setfill('0') << setw(2) << hex << (int) s;
-    return ss.str();
 }
 
 void Session::sendData(Message message) {
