@@ -133,7 +133,7 @@ void Server::listenForClients() {
 
         //odczytaj Message od klienta
         thread sessionThread(&Session::run, session); // utwórz wątek dla nowego połączenia
-        sessionThread.join(); // uruchom wątek
+        sessionThread.detach();
     }
     cerr << errno << endl;
     throw ServerException(ServerException::ErrorCode::ACCEPT_FAILURE);

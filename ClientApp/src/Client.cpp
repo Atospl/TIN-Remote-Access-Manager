@@ -60,10 +60,6 @@ void Client::runClient() {
                 break;
             case ClientException::ErrorCode::LOGGING_IN_FAILURE:
                 break;
-            case ClientException::ErrorCode::LOGGING_OFF:
-                cerr << "Logging out" << endl;
-                logOut();
-                break;
         }
         close(clientSocket);
     }
@@ -99,7 +95,8 @@ void Client::prepare() {
 
 void Client::getDataToTransfer() {
     int c;
-    while (1) {
+    bool again = true;
+    while (again) {
         cout << "What do you want to do?" << endl;
         cout << "1 - Book an access." << endl;
         cout << "2 - Request access from this ip." << endl;
@@ -120,7 +117,9 @@ void Client::getDataToTransfer() {
                 break;
 
             case 4:
-                throw ClientException(ClientException::LOGGING_OFF);
+                sendLoggingOffMessage();
+                exit = false;
+                break;
 
             default:
                 cout << "Incorrect choice" << endl;
@@ -130,10 +129,8 @@ void Client::getDataToTransfer() {
 
 void Client::initializeSSL() {
     SSL_library_init();
-
     SSL_load_error_strings();
     OpenSSL_add_all_algorithms();
-
 }
 
 void Client::initializeSSL_CTX() {
@@ -171,7 +168,7 @@ bool Client::setServerPortAndName(int p, string name) {
 }
 
 bool Client::setServerPortAndName() {
-    //todo - pobranie z pliku konfiguracyjnego
+    //TODO - pobranie z pliku konfiguracyjnego
     return true;
 }
 
@@ -195,7 +192,7 @@ void Client::logIn() {
         throw ClientException(ClientException::ErrorCode::LOGGING_IN_FAILURE);
 }
 
-void Client::logOut() {
+void Client::sendLoggingOffMessage() {
     Message message;
     message.messageType = LOGGING_OUT;
     sendData(message);

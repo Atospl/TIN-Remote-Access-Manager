@@ -30,6 +30,6 @@ bool IptablesController::grantWaitAndRevoke(std::string ip, unsigned int minutes
 
 void IptablesController::grantLimitedAccess(std::string ip, unsigned int minutes) {
     thread workerThread(&IptablesController::grantWaitAndRevoke, ip, minutes);
-    workerThread.join();
+    workerThread.detach();
 }
 

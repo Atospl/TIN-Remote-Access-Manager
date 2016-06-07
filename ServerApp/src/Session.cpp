@@ -160,7 +160,7 @@ void Session::handleAccessRequestMessage() {
 
         if (minutes != 0) {
             char buf[16];
-            //IptablesController::grantLimitedAccess(inet_ntop(AF_INET, &ip4Address, buf, 16), minutes);
+            IptablesController::grantLimitedAccess(inet_ntop(AF_INET, &ip4Address, buf, 16), minutes);
             message.messageType = MessageType::SUCCESS;
             string temp = "Access granted for " + to_string(minutes) + " minutes";
             strcpy(message.messageData.successMessage, temp.c_str());

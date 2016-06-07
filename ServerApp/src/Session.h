@@ -55,8 +55,6 @@ private:
 
     void handleBookingRequestMessage(uint32_t id, time_t data);
 
-    void handleMachineDataRequestMessage(uint32_t id, char *information);
-
     void handleSuccessMessage(char *successMessage);
 
     void handleFailMessage(char *failMessage);
