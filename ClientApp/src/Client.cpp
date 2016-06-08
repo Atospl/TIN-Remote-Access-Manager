@@ -20,7 +20,7 @@
 #include <cstring>
 #include <climits>
 #include <unistd.h>
-
+#include <algorithm>
 using namespace std;
 
 bool Client::running = false;
@@ -118,7 +118,7 @@ void Client::getDataToTransfer() {
 
             case 4:
                 sendLoggingOffMessage();
-                exit = false;
+                again = false;
                 break;
 
             default:
@@ -271,7 +271,58 @@ void Client::sendAccessRequestMessage() {
 void Client::sendBookingLogRequestMessage() {
     Message message;
     message.messageType = MessageType::BOOKING_LOG;
-    sendData(message);
+    Message::MessageData::BookingMessage bookingMessage;
+
+    string date;
+    string year;
+    string month;
+    string day;
+    string hour;
+    string minute;
+
+    cout << "Date ( format: hour/minute/day/mth/year )" << endl;
+    cin >> date;
+    if (count(date.begin(), date.end(), '/') == 4) {
+
+        hour = date.substr(0, date.find('/'));
+        date = date.substr(hour.length() + 1);
+        minute = date.substr(0, date.find('/'));
+        date = date.substr(minute.length() + 1);
+        day = date.substr(0, date.find('/'));
+        date = date.substr(day.length() + 1);
+        month = date.substr(0, date.find('/'));
+        date = date.substr(month.length() + 1);
+        year = date;
+
+        if (isInteger(year) && isCorrectDate(month, 1, 12) && isCorrectDate(day, 1, 31)
+            && isCorrectDate(hour, 0, 23) && isCorrectDate(minute, 0, 59)) {
+
+            time_t rawtime;
+            struct tm * bookingTime = localtime(&rawtime);
+
+            bookingTime->tm_year = stoi(year) - 1900;
+            bookingTime->tm_mon = stoi(month) - 1; // 0-11
+            bookingTime->tm_mday = stoi(day);
+            bookingTime->tm_hour = stoi(hour);
+            bookingTime->tm_min = stoi(minute);
+            bookingTime->tm_sec = 0;
+            bookingTime->tm_isdst = -1;
+
+            bookingMessage.date = mktime(bookingTime);
+            message.messageData.bookingMessage = bookingMessage;
+
+            sendData(message);
+            handleResponse();
+        }
+        else{
+            cerr << "Wrong values" << endl;
+        }
+    }
+    else {
+        cerr << "Wrong date format" << endl;
+    }
+
+
 }
 
 Message Client::receiveData() {
@@ -309,7 +360,12 @@ bool Client::handleResponse() {
     if (message.messageType == MessageType::SUCCESS) {
         cout << message.messageData.successMessage << endl;
         return true;
-    } else {
+    }
+    else if(message.messageType = MessageType::BOOKING_LOG)
+    {
+        cout << "Next available date is: " << ctime(&message.messageData.bookingMessage.date) << endl;
+    }
+    else {
         cerr << message.messageData.failMessage << endl;
         return false;
     }
@@ -323,23 +379,3 @@ bool Client::isCorrectDate(string val, int lowerThan, int biggerThan) {
 bool Client::isInteger(const std::string &str) {
     return !str.empty() && str.find_first_not_of("0123456789") == string::npos;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
