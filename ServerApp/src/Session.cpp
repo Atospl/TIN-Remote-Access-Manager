@@ -104,7 +104,7 @@ void Session::handleMessage(Message message) {
 
 
         case MessageType::BOOKING_LOG:
-            handleBookingLogRequestMessage();
+            handleBookingLogRequestMessage(message.messageData.bookingMessage.date);
             break;
 
         case MessageType::LOGGING_OUT:
@@ -158,8 +158,12 @@ void Session::handleAccessRequestMessage() {
     sendData(message);
 }
 
-void Session::handleBookingLogRequestMessage() {
-    cout << "BOOKING_LOG" << endl;
+void Session::handleBookingLogRequestMessage(time_t date) {
+    time_t toReturn = FileController::getInstance().firstAvailableDate(date);
+    Message message;
+    message.messageType = MessageType::BOOKING_LOG;
+    message.messageData.bookingMessage.date = toReturn;
+    sendData(message);
 }
 
 void Session::handleSuccessMessage(char * successMessage) {
