@@ -105,7 +105,7 @@ void Client::getDataToTransfer() {
         cin >> c;
         switch (c) {
             case 1:
-                sendBookingRequestMessage();
+                sendRequestMessage(MessageType::BOOKING);
                 break;
 
             case 2:
@@ -113,7 +113,7 @@ void Client::getDataToTransfer() {
                 break;
 
             case 3:
-                sendBookingLogRequestMessage();
+                sendRequestMessage(MessageType::BOOKING_LOG);
                 break;
 
             case 4:
@@ -203,9 +203,9 @@ void Client::sendData(Message message) {
         throw ClientException(ClientException::ErrorCode::SSL_ERROR);
 }
 
-void Client::sendBookingRequestMessage() {
+void Client::sendRequestMessage(MessageType msgType) {
     Message message;
-    message.messageType = MessageType::BOOKING;
+    message.messageType = msgType;
     Message::MessageData::BookingMessage bookingMessage;
     cout << "Machine id: " << endl;
     cin >> bookingMessage.id;
@@ -268,63 +268,6 @@ void Client::sendAccessRequestMessage() {
     handleResponse();
 }
 
-void Client::sendBookingLogRequestMessage() {
-    Message message;
-    message.messageType = MessageType::BOOKING_LOG;
-    Message::MessageData::BookingMessage bookingMessage;
-
-    string date;
-    string year;
-    string month;
-    string day;
-    string hour;
-    string minute;
-
-    cout << "Date ( format: hour/minute/day/mth/year )" << endl;
-    cin >> date;
-    if (count(date.begin(), date.end(), '/') == 4) {
-
-        hour = date.substr(0, date.find('/'));
-        date = date.substr(hour.length() + 1);
-        minute = date.substr(0, date.find('/'));
-        date = date.substr(minute.length() + 1);
-        day = date.substr(0, date.find('/'));
-        date = date.substr(day.length() + 1);
-        month = date.substr(0, date.find('/'));
-        date = date.substr(month.length() + 1);
-        year = date;
-
-        if (isInteger(year) && isCorrectDate(month, 1, 12) && isCorrectDate(day, 1, 31)
-            && isCorrectDate(hour, 0, 23) && isCorrectDate(minute, 0, 59)) {
-
-            time_t rawtime;
-            struct tm * bookingTime = localtime(&rawtime);
-
-            bookingTime->tm_year = stoi(year) - 1900;
-            bookingTime->tm_mon = stoi(month) - 1; // 0-11
-            bookingTime->tm_mday = stoi(day);
-            bookingTime->tm_hour = stoi(hour);
-            bookingTime->tm_min = stoi(minute);
-            bookingTime->tm_sec = 0;
-            bookingTime->tm_isdst = -1;
-
-            bookingMessage.date = mktime(bookingTime);
-            message.messageData.bookingMessage = bookingMessage;
-
-            sendData(message);
-            handleResponse();
-        }
-        else{
-            cerr << "Wrong values" << endl;
-        }
-    }
-    else {
-        cerr << "Wrong date format" << endl;
-    }
-
-
-}
-
 Message Client::receiveData() {
     Message buf;
     char *pBuf = (char *) &buf;
@@ -361,9 +304,10 @@ bool Client::handleResponse() {
         cout << message.messageData.successMessage << endl;
         return true;
     }
-    else if(message.messageType = MessageType::BOOKING_LOG)
+    else if(message.messageType == MessageType::BOOKING_LOG)
     {
         cout << "Next available date is: " << ctime(&message.messageData.bookingMessage.date) << endl;
+        return true;
     }
     else {
         cerr << message.messageData.failMessage << endl;
