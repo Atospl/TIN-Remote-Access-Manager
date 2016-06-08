@@ -40,15 +40,13 @@ private:
 
     void getDataToTransfer();
 
-    void sendBookingRequestMessage();
+    void sendRequestMessage(MessageType);
 
     void sendAccessRequestMessage();
 
     void sendMachineDataRequestMessage();
     
     void sendLoggingOffMessage();
-
-    void sendBookingLogRequestMessage();
 
     bool isInteger(const std::string & s);
 
