@@ -36,7 +36,6 @@ public:
     std::vector<std::tuple<std::string, std::string, time_t>>& getSessionIds() { return userSessionIds; }
 
     const static unsigned int sessionIdTimeout = 3600;
-    const static unsigned int accessTime = 60;
 
 private:
     /** Singleton's private constructor. Imports certificates, keys and port number from file */

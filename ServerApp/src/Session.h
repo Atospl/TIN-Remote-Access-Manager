@@ -38,8 +38,6 @@ protected:
 
     void sendData(Message);
 
-    unsigned int checkAvailableTime();
-
 private:
     //Handles client's message
     void handleMessage(Message message);

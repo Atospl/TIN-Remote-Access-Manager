@@ -31,6 +31,9 @@ public:
 
     /** Validate user's password */
     bool verifyUser(const char *login, const char *password);
+    /** check time left on current reservation */
+    unsigned int checkAvailableTime(string userLogin);
+
 
 private:
     // zablokowany konstruktor domyślny (singleton)

@@ -138,7 +138,7 @@ void Session::handleAccessRequestMessage() {
     Message message;
 
     if (verified) {
-        unsigned int minutes = checkAvailableTime();
+        unsigned int minutes = Server::getServer().checkAvailableTime(userLogin);
 
         if (minutes != 0) {
             char buf[16];
@@ -195,30 +195,6 @@ void Session::sendData(Message message) {
     if (SSL_write(ssl, &message, sizeof (Message)) == 0)
         throw SessionException(SessionException::ErrorCode::SSL_ERROR);
 }
-
-unsigned int Session::checkAvailableTime() {
-    auto wholeList = FileController::getInstance().getReservations();
-    vector<reservation> personalList;
-
-    for (auto itr : wholeList) { // get reservations by user's login
-        if (itr.userLogin == userLogin)
-            personalList.push_back(itr);
-    }
-
-    time_t currentTime = time(nullptr);
-    time_t timeHourAgo = currentTime - (60/*seconds*/ * 60/*minutes*/);
-
-    for (auto itr : personalList) {
-        if (itr.date > timeHourAgo && itr.date < currentTime) {
-            unsigned int minutes = (itr.date + (60 * 60)) - currentTime;
-            minutes /= 60;
-            return minutes;
-        }
-    }
-
-    return 0;
-}
-
 
 
 

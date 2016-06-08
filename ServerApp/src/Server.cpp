@@ -222,3 +222,28 @@ string Server::to_hex(unsigned char s) {
     return ss.str();
 }
 
+unsigned int Server::checkAvailableTime(string userLogin) {
+    auto wholeList = FileController::getInstance().getReservations();
+    vector<reservation> personalList;
+
+    for (auto itr : wholeList) { // get reservations by user's login
+        if (itr.userLogin == userLogin)
+            personalList.push_back(itr);
+    }
+
+    time_t currentTime = time(nullptr);
+    time_t timeHourAgo = currentTime - (60/*seconds*/ * 60/*minutes*/);
+
+    for (auto itr : personalList) {
+        if (itr.date > timeHourAgo && itr.date < currentTime) {
+            unsigned int minutes = (itr.date + (60 * 60)) - currentTime;
+            minutes /= 60;
+            return minutes;
+        }
+    }
+
+    return 0;
+}
+
+
+

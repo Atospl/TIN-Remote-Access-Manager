@@ -42,7 +42,7 @@ void BaseRequestHandler::initFile(std::string path)
 void RootGetHandler::handleRequest(Poco::Net::HTTPServerRequest& request,
                                 Poco::Net::HTTPServerResponse& response)
 {
-    initFile("/home/atos/Projects/TIN/ServerApp/src/html/index.html");
+    initFile("./index.html");
     response.send() << stringStream.str();
 }
 
@@ -94,7 +94,7 @@ void ReservationGetHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
         response.send() << "<html><head></head><body><h1>Invalid login/password</h1></body></html>";
     }
 
-    initFile("/home/atos/Projects/TIN/ServerApp/src/html/reservations.html");
+    initFile("./reservations.html");
     response.send() << stringStream.str();
 }
 
@@ -118,11 +118,30 @@ bool ReservationGetHandler::checkSessionId(std::string sessionId) {
 /** Reservation POST */
 void ReservationPostHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
                                            Poco::Net::HTTPServerResponse &response) {
+    //get user login
+    Poco::Net::NameValueCollection cookies;
+    request.getCookies(cookies);
+    Poco::Net::NameValueCollection::ConstIterator it = cookies.find("login");
+    std::string login;
+    if (it != cookies.end())
+        login = it->second;
+
     string ip = request.clientAddress().toString();
+    ip = ip.substr(0, ip.find(":", 0));
     //Access Request
     if(request.getContentLength() == 0)
     {
-        IptablesController::grantLimitedAccess(ip, HTTPServerFacade::accessTime);
+        unsigned int minutes = Server::getServer().checkAvailableTime(login);
+        if(minutes > 0) {
+            IptablesController::grantLimitedAccess(ip, minutes);
+            response.send() << "<html><head></head><body><h1>Access granted</h1></body></html>";
+            return;
+        }
+        else {
+            response.send() << "<html><head></head><body><h1>Access denied</h1></body></html>";
+            return;
+        }
+
     }
     HTMLForm form(request, request.stream());
     //parse date
@@ -131,28 +150,24 @@ void ReservationPostHandler::handleRequest(Poco::Net::HTTPServerRequest &request
 
     string machineId = form.get("machineId");
     string date = form.get("date");
-    regex pattern("(\d{2})\/(\d{2})\/(\d{4})");
+    regex pattern("(\\d{2})\\/(\\d{2})\\/(\\d{4})");
     smatch result;
     if(!regex_search(date, result, pattern)) {
         response.send() << "<html><head></head><body><h1>Invalid request</h1></body></html>";
         return;
     }
+    string year = result[2];
+    string day = result[0];
+    string month = result[1];
+
     //parse to time_t
     time(&rawtime);
     dateStruct = localtime(&rawtime);
-    dateStruct->tm_year = stoi(result[2]);
-    dateStruct->tm_mon = stoi(result[1]) - 1;
-    dateStruct->tm_mday = stoi(result[0]);
+    dateStruct->tm_year = stoi(result[3]) - 1900;
+    dateStruct->tm_mon = stoi(result[2]) - 1;
+    dateStruct->tm_mday = stoi(result[1]);
 
     rawtime = mktime(dateStruct);
-
-    //get user login
-    Poco::Net::NameValueCollection cookies;
-    request.getCookies(cookies);
-    Poco::Net::NameValueCollection::ConstIterator it = cookies.find("login");
-    std::string login;
-    if (it != cookies.end())
-        login = it->second;
 
     bool reservationResult = FileController::getInstance().addReservation(login, stoi(machineId), rawtime);
     if(reservationResult)
