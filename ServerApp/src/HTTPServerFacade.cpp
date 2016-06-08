@@ -53,16 +53,26 @@ void HTTPServerFacade::stopServer() {
 string HTTPServerFacade::genSessionId() {
     /** Simple algorithm for random string. Not very safe -
      * you should use boost::random to achieve it */
-    srand(time(NULL) + rand());
-    stringstream ss;
-    for(int i = 0;i < 64;i++)
+    // @TODO sometimes it fucks up. Add some sleep or sth
+    auto randchar = []() -> char
     {
-        int j = rand() % 127;
-        while(j < 32)
-            j = rand() % 127;
-        ss << char(j);
-    }
-    return ss.str();
+        const char charset[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+        const size_t max_index = (sizeof(charset) - 1);
+        return charset[ rand() % max_index ];
+    };
+    std::string str(cookieLen,0);
+    std::generate_n( str.begin(), cookieLen, randchar );
+    return str;
+//    srand(time(NULL) + rand());
+//    stringstream ss;
+//    for(int i = 0;i < 16;i++)
+//    {
+//        int j = rand() % 127;
+//        while(j < 32)
+//            j = rand() % 127;
+//        ss << char(j);
+//    }
+//    return ss.str();
 }
 
 void HTTPServerFacade::addSessionId(std::string login, std::string sessionId) {

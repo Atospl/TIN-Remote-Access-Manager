@@ -43,6 +43,7 @@ private:
 
     const unsigned int maxQueued = 100;
     const unsigned int maxThreads = 50;
+    const unsigned int cookieLen = 16;
 
     /** Port used by http server */
     Poco::UInt16 port;

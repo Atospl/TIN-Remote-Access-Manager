@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title> Reservations page -- TIN Remote Access Manager </title>
+        <link rel="stylesheet" href="styles.css"/>
+    </head>
+
+    <body>
+        <h1> Reserve a machine: </h1>
+        <form name="reservation" method="post" accept-charset="utf-8">
+	    Machine id: <input type="number" id="machineId" name="machineId"><br>
+	    Date: <input type="date" id="date" name="date" placeholder="01/12/2016"/><br>
+	    Time <input type="time" id="time" name="time" placeholder="16:00"/><br>
+	    <input type="submit" value="Make reservation"/>
+	</form>
+	<br/> <br/> <br/>
+	<form name="access-request" method="post">
+	<input type="submit" value="Request Access"/>
+	</form>
+
+    </body>
+</html>

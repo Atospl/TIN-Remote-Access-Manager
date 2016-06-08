@@ -27,6 +27,11 @@ public:
         else
             if(request.getURI() == "/" && request.getMethod() == "POST")
                 return (Poco::Net::HTTPRequestHandler*) new RootPostHandler();
+            else
+                if(request.getURI() == "/reservations.html" && request.getMethod() == "GET")
+                        return (Poco::Net::HTTPRequestHandler*) new ReservationGetHandler();
+                    else if(request.getURI() == "/reservations.html" && request.getMethod() == "POST")
+                        return (Poco::Net::HTTPRequestHandler*) new ReservationPostHandler();
     }
 };
 

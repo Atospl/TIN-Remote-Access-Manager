@@ -37,4 +37,19 @@ public:
                                Poco::Net::HTTPServerResponse& response);
 };
 
+class ReservationGetHandler : public BaseRequestHandler
+{
+public:
+    virtual void handleRequest(Poco::Net::HTTPServerRequest& request,
+                               Poco::Net::HTTPServerResponse& response);
+private:
+    bool checkSessionId(std::string sessionId);
+};
+
+class ReservationPostHandler : public BaseRequestHandler
+{
+public:
+    virtual void handleRequest(Poco::Net::HTTPServerRequest& request,
+                               Poco::Net::HTTPServerResponse& response);
+};
 #endif //SERVERAPP_HTTPREQUESTHHANDLER_H
