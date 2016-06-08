@@ -188,7 +188,6 @@ void Server::initializeSSL_CTX() {
 }
 
 bool Server::verifyUser(const char *login, const char *password) {
-    return true;
     Message message;
     vector<client> clients = FileController::getInstance().getClients();
     string hash = sha512(string(password));

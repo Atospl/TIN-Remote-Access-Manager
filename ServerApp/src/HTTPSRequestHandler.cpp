@@ -6,12 +6,17 @@
 #include "HTTPServerFacade.h"
 #include "Exception.h"
 #include <tuple>
+#include "FileController.h"
 #include <fstream>
 #include <iostream>
 #include <string>
 #include "Server.h"
 #include <Poco/Net/HTTPResponse.h>
+#include "IptablesController.h"
 #include <Poco/Net/HTMLForm.h>
+#include <regex>
+#include <string>
+#include <ctime>
 #include <Poco/Net/HTTPCookie.h>
 
 using namespace Poco::Net;
@@ -55,8 +60,10 @@ void RootPostHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
         /** send cookie and save session id */
         string sessionId = HTTPServerFacade::getServer().genSessionId();
         HTTPCookie cookie("sessionId", sessionId);
+        HTTPCookie loginCookie("login", login);
         cookie.setMaxAge(HTTPServerFacade::sessionIdTimeout);
         response.addCookie(cookie);
+        response.addCookie(loginCookie);
         /** save session id in the server */
         HTTPServerFacade::getServer().addSessionId(login, sessionId);
         response.redirect("/reservations.html");
@@ -92,7 +99,6 @@ void ReservationGetHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
 }
 
 bool ReservationGetHandler::checkSessionId(std::string sessionId) {
-    /** @TODO BAD code over here... */
     std::vector<std::tuple<std::string, std::string, time_t>> tuples = HTTPServerFacade::getServer().getSessionIds();
     for(std::vector<std::tuple<std::string, std::string, time_t>>::iterator it  = tuples.begin(); it != tuples.end(); ++it)
     {
@@ -112,10 +118,52 @@ bool ReservationGetHandler::checkSessionId(std::string sessionId) {
 /** Reservation POST */
 void ReservationPostHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
                                            Poco::Net::HTTPServerResponse &response) {
+    string ip = request.clientAddress().toString();
     //Access Request
     if(request.getContentLength() == 0)
     {
-        //IptablesController::grantLimitedAccess(inet_ntop(AF_INET, &ip4Address, buf, 16), minutes);
+        IptablesController::grantLimitedAccess(ip, HTTPServerFacade::accessTime);
+    }
+    HTMLForm form(request, request.stream());
+    //parse date
+    time_t rawtime;
+    struct tm* dateStruct;
+
+    string machineId = form.get("machineId");
+    string date = form.get("date");
+    regex pattern("(\d{2})\/(\d{2})\/(\d{4})");
+    smatch result;
+    if(!regex_search(date, result, pattern)) {
+        response.send() << "<html><head></head><body><h1>Invalid request</h1></body></html>";
+        return;
+    }
+    //parse to time_t
+    time(&rawtime);
+    dateStruct = localtime(&rawtime);
+    dateStruct->tm_year = stoi(result[2]);
+    dateStruct->tm_mon = stoi(result[1]) - 1;
+    dateStruct->tm_mday = stoi(result[0]);
+
+    rawtime = mktime(dateStruct);
+
+    //get user login
+    Poco::Net::NameValueCollection cookies;
+    request.getCookies(cookies);
+    Poco::Net::NameValueCollection::ConstIterator it = cookies.find("login");
+    std::string login;
+    if (it != cookies.end())
+        login = it->second;
+
+    bool reservationResult = FileController::getInstance().addReservation(login, stoi(machineId), rawtime);
+    if(reservationResult)
+    {
+        response.send() << "<html><head></head><body><h1>Ok!</h1></body></html>";
+        return;
+    }
+    else
+    {
+        response.send() << "<html><head></head><body><h1>Couldn't make reservation</h1></body></html>";
+        return;
     }
 }
 

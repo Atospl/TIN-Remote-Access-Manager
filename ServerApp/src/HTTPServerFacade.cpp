@@ -13,7 +13,7 @@
 using namespace Poco::Net;
 
 HTTPServerFacade::HTTPServerFacade() {
-    port = FilesPaths::getInstance().getServerPort();
+    port = FilesPaths::getInstance().getHttpsPort();
 
     //set up server parameters
     pParams = new HTTPServerParams();
@@ -53,7 +53,6 @@ void HTTPServerFacade::stopServer() {
 string HTTPServerFacade::genSessionId() {
     /** Simple algorithm for random string. Not very safe -
      * you should use boost::random to achieve it */
-    // @TODO sometimes it fucks up. Add some sleep or sth
     auto randchar = []() -> char
     {
         const char charset[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -63,16 +62,6 @@ string HTTPServerFacade::genSessionId() {
     std::string str(cookieLen,0);
     std::generate_n( str.begin(), cookieLen, randchar );
     return str;
-//    srand(time(NULL) + rand());
-//    stringstream ss;
-//    for(int i = 0;i < 16;i++)
-//    {
-//        int j = rand() % 127;
-//        while(j < 32)
-//            j = rand() % 127;
-//        ss << char(j);
-//    }
-//    return ss.str();
 }
 
 void HTTPServerFacade::addSessionId(std::string login, std::string sessionId) {

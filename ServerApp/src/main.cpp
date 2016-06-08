@@ -10,11 +10,13 @@ int main() {
     HTTPServerFacade httpServer = HTTPServerFacade::getServer();
     httpServer.runServer();
 
+    Server::setDefaultPort(8765);
+    Server::setMaxWaitingConns(10);
+    Server server = Server::getServer();
+    cout << "Hello, World, I'm alive!" << endl;
+    server.runServer();
+
     while(1);
-//    Server::setDefaultPort(8765);
-//    Server::setMaxWaitingConns(10);
-//    Server server = Server::getServer();
-//    cout << "Hello, World, I'm alive!" << endl;
-//    server.runServer();
+    
     return 0;
 }

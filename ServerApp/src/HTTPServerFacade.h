@@ -33,9 +33,10 @@ public:
     /** adds new session id to the vector and sets its timeout */
     void addSessionId(std::string login, std::string sessionId);
     /** get vector with beautiful tuple */
-    std::vector<std::tuple<std::string, std::string, time_t>> getSessionIds() { return userSessionIds; }
+    std::vector<std::tuple<std::string, std::string, time_t>>& getSessionIds() { return userSessionIds; }
 
     const static unsigned int sessionIdTimeout = 3600;
+    const static unsigned int accessTime = 60;
 
 private:
     /** Singleton's private constructor. Imports certificates, keys and port number from file */
