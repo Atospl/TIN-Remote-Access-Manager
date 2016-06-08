@@ -45,6 +45,8 @@ private:
     void sendAccessRequestMessage();
 
     void sendMachineDataRequestMessage();
+    
+    void sendLoggingOffMessage();
 
     void sendBookingLogRequestMessage();
 
