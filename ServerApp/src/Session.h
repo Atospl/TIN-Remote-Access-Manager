@@ -46,7 +46,7 @@ private:
 
     void handleAccessRequestMessage();
 
-    void handleBookingLogRequestMessage();
+    void handleBookingLogRequestMessage(time_t);
 
     void handleBookingRequestMessage(uint32_t id, time_t data);
 
