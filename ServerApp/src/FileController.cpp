@@ -106,12 +106,12 @@ vector<client> FileController::getClients() {
     {
         vector<string> values = getValuesCsv(line);
         client client;
-        if(values.size() != 3 || !isNumber(values[1], true) || !isNumber(values[2]))
+        if(values.size() != 3 || !isNumber(values[1], true))
             continue;
 
         client.login = values[0];
         client.passHash = values[1];
-        client.salt = stoul(values[2]);
+        client.salt = values[2];
         clients.push_back(client);
     }
     return clients;

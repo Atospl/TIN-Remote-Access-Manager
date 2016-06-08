@@ -1,4 +1,7 @@
-reated by https://www.gitignore.io/api/c,c,c++,intellij
+# Libraries
+/ServerApp/poco/
+/ServerApp/Debug/
+/ClientApp/Debug/
 
 ServerApp/src/config/build_default.ini
 
