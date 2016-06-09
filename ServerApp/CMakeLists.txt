@@ -3,6 +3,9 @@ project(ServerApp)
 file(MAKE_DIRECTORY Debug)
 set(EXECUTABLE_OUTPUT_PATH Debug)
 
+file(GLOB HTML_FILES "src/*.html")
+file(COPY ${HTML_FILES} DESTINATION "Debug")
+
 find_package(OpenSSL REQUIRED)
 find_library(POCO_FOUNDATION PocoFoundation)
 find_library(POCO_NET PocoNet)
