@@ -22,7 +22,7 @@ if __name__ == "__main__":
             with open('./src/config/clients', 'a') as clientsCSVFile:
                 fieldnames = ['login', 'passHash', 'salt']
                 writer = csv.DictWriter(clientsCSVFile, fieldnames=fieldnames, lineterminator='\n')
-                writer.writerow({'login' : login, 'passHash' : hashlib.sha512(password).hexdigest(), 'salt' : salt})
+                writer.writerow({'login' : login, 'passHash' : hashlib.sha512(password +  salt).hexdigest(), 'salt' : salt})
         
             print('User registered!')
         print('Do you want to add new user? [Y/N]')

@@ -190,9 +190,9 @@ void Server::initializeSSL_CTX() {
 bool Server::verifyUser(const char *login, const char *password) {
     Message message;
     vector<client> clients = FileController::getInstance().getClients();
-    string hash = sha512(string(password));
     cout << clients.size();
     for(auto i : clients) {
+        string hash = sha512(string(password) + i.salt);
         if (i.login == login)
             if (i.passHash.compare(hash) == 0) {
                 return true;
