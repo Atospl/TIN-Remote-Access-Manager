@@ -54,9 +54,6 @@ private:
 
     void handleLoginMessage(char *login, char *password);
 
-
-
-
     int clientSocket;
     int ip4Address;
     bool verified;

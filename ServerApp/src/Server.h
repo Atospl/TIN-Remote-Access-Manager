@@ -67,7 +67,6 @@ private:
     char *certPath;
     char *keyPath;
     char *caCertPath;
-
 };
 
 

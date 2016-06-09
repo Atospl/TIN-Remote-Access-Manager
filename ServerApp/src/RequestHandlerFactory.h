@@ -10,7 +10,6 @@
 #include "HTTPSRequestHandler.h"
 #include <iostream>
 
-
 class RequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory {
 public:
     RequestHandlerFactory()
@@ -32,6 +31,5 @@ public:
                         return (Poco::Net::HTTPRequestHandler*) new ReservationPostHandler();
     }
 };
-
 
 #endif //SERVERAPP_REQUESTHANDLER_H

@@ -18,18 +18,19 @@
 #include "IptablesController.h"
 
 void Session::run() {
-    // perform necessary SSL operations
-    initializeSSLBIO();
-    SSLHandshake();
-
-    Message buf;
-    char* pBuf = (char *)&buf;
-    short bytesToRead = sizeof(Message);
-
-    int bytesRead = 0;
-    int readValue = 0;
-
     try {
+        // perform necessary SSL operations
+        initializeSSLBIO();
+        SSLHandshake();
+
+        Message buf;
+        char* pBuf = (char *)&buf;
+        short bytesToRead = sizeof(Message);
+
+        int bytesRead = 0;
+        int readValue = 0;
+
+
         while (true) {
             readValue = SSL_read(ssl, pBuf, bytesToRead);
 
@@ -74,7 +75,7 @@ void Session::SSLHandshake() {
 //    SSL_set_accept_state(ssl);
     if (SSL_accept(ssl) == -1) {
         ERR_print_errors_fp(stderr);
-        exit(1000);
+        throw SessionException(SessionException::ErrorCode::SSL_ERROR);
     }
 }
 
