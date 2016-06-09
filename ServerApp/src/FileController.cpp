@@ -37,7 +37,6 @@ machine FileController::getMachine()
 
     if(machineFile.is_open())
     {
-        //cout << "Machine file opened!" << endl;
         str << machineFile.rdbuf();
         machineFile.close();
     }
@@ -235,9 +234,6 @@ bool FileController::addReservation(std::string userLogin, int machineId, time_t
 
         time_t dateToCompare = mktime(dateTm);
 
-        cout<<ctime(&dateToCompare)<<endl;
-        cout<<ctime(&date)<<endl;
-        cout<< abs(difftime(dateToCompare, date))<< endl;
         //jeśli różnica czasu rezerwacji < 1 godzina, to zwraca false
         if (abs(difftime(dateToCompare, date)) < 3600)
         {
