@@ -1,5 +1,7 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.2)
 project(ServerApp)
+file(MAKE_DIRECTORY Debug)
+set(EXECUTABLE_OUTPUT_PATH Debug)
 
 find_package(OpenSSL REQUIRED)
 find_library(POCO_FOUNDATION PocoFoundation)
