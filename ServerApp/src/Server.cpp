@@ -194,10 +194,9 @@ bool Server::verifyUser(const char *login, const char *password) {
     cout << clients.size();
     for(auto i : clients) {
         if (i.login == login)
-            return true;
-        if (i.passHash.compare(hash) == 0) {
-            return true;
-        }
+            if (i.passHash.compare(hash) == 0) {
+                return true;
+            }
     }
     return false;
 }
