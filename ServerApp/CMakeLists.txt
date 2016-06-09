@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.2)
 project(ServerApp)
+set(CMAKE_CXX_COMPILER g++-5)
 file(MAKE_DIRECTORY Debug)
 set(EXECUTABLE_OUTPUT_PATH Debug)
 

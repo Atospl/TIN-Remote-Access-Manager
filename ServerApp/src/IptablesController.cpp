@@ -8,12 +8,12 @@
 using namespace std;
 
 bool IptablesController::grantAccess(std::string ip) {
-    string command = "iptables -A FORWARD -s " + ip + " -j ACCEPT";
+    string command = "iptables -I INPUT -p tcp -s " + ip + " --dport 22 -j ACCEPT";
     return system(command.c_str()) == 0;
 }
 
 bool IptablesController::revokeAccess(std::string ip) {
-    string command = "iptables -D FORWARD -s " + ip + " -j ACCEPT";
+    string command = "iptables -D INPUT -p tcp -s " + ip + " --dport 22 -j ACCEPT";
     return system(command.c_str()) == 0;
 }
 
