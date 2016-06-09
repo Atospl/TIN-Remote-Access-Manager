@@ -150,26 +150,37 @@ void ReservationPostHandler::handleRequest(Poco::Net::HTTPServerRequest &request
 
     string machineId = form.get("machineId");
     string date = form.get("date");
-    regex pattern("(\\d{2})\\/(\\d{2})\\/(\\d{4})");
-    smatch result;
-    if(!regex_search(date, result, pattern)) {
+    string hour = form.get("time");
+
+    regex datePattern("(\\d{2})\\/(\\d{2})\\/(\\d{4})");
+    smatch dateResult;
+    regex hourPattern("(\\d{2}):(\\d{2})");
+    smatch hourResult;
+    if(!regex_search(date, dateResult, datePattern) || !regex_search(hour, hourResult, hourPattern)) {
+
         response.send() << "<html><head></head><body><h1>Invalid request</h1></body></html>";
         return;
     }
-    string year = result[2];
-    string day = result[0];
-    string month = result[1];
+    if(stoi(dateResult[1]) > 31 || stoi(dateResult[1]) < 0 || stoi(dateResult[2]) > 12 || stoi(dateResult[2]) < 1 ||
+            stoi(hourResult[1]) > 24 || stoi(hourResult[1]) < 0 || stoi(hourResult[2]) > 60 || stoi(hourResult[2]) < 0)
+    {
+        response.send() << "<html><head></head><body><h1>Invalid reservation</h1></body></html>";
+        return;
+    }
 
     //parse to time_t
     time(&rawtime);
     dateStruct = localtime(&rawtime);
-    dateStruct->tm_year = stoi(result[3]) - 1900;
-    dateStruct->tm_mon = stoi(result[2]) - 1;
-    dateStruct->tm_mday = stoi(result[1]);
-
+    dateStruct->tm_year = stoi(dateResult[3]) - 1900;
+    dateStruct->tm_mon = stoi(dateResult[2]) - 1;
+    dateStruct->tm_mday = stoi(dateResult[1]);
+    dateStruct->tm_hour = stoi(hourResult[1]);
+    dateStruct->tm_min = stoi(hourResult[2]);
+    dateStruct->tm_sec = 0;
+    dateStruct->tm_isdst = -1;
     rawtime = mktime(dateStruct);
 
-    bool reservationResult = FileController::getInstance().addReservation(login, stoi(machineId), rawtime);
+     bool reservationResult = FileController::getInstance().addReservation(login, stoi(machineId), rawtime);
     if(reservationResult)
     {
         response.send() << "<html><head></head><body><h1>Ok!</h1></body></html>";
