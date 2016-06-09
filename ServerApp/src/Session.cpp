@@ -58,9 +58,11 @@ void Session::run() {
     } catch (SessionException e){
         if (e.errorCode == SessionException::ErrorCode::SSL_ERROR)
             if (e.sslErrorNumber == SSL_ERROR_SYSCALL)
-                cerr << "Connection ended" << endl;
+                cerr << "Connection ended." << endl;
             else
                 cerr << "SSL error: " << e.sslErrorNumber;
+        if (e.errorCode == SessionException::ErrorCode::MESSAGE_NOT_RECOGNIZED)
+            cerr << "Message not recognized, ending connection." << endl;
         close(clientSocket);
         delete this;
     }
@@ -103,14 +105,15 @@ void Session::handleMessage(Message message) {
             handleSuccessMessage(message.messageData.successMessage);
             break;
 
-
         case MessageType::BOOKING_LOG:
             handleBookingLogRequestMessage(message.messageData.bookingMessage.date);
             break;
 
         case MessageType::LOGGING_OUT:
-            cout << "LOGGING_OFF" << endl;
             throw SessionException(SessionException::ErrorCode::LOGGING_OFF);
+
+        default:
+            throw SessionException(SessionException::ErrorCode::MESSAGE_NOT_RECOGNIZED);
     }
 }
 

@@ -18,7 +18,8 @@ struct ServerException {
 struct SessionException {
     enum ErrorCode {
         LOGGING_OFF,
-        SSL_ERROR
+        SSL_ERROR,
+        MESSAGE_NOT_RECOGNIZED
     } errorCode;
     int sslErrorNumber;
     SessionException(ErrorCode code, int sslErrorNumber = 0) : errorCode(code), sslErrorNumber(sslErrorNumber) {};
