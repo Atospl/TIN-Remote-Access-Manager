@@ -6,7 +6,7 @@
 using namespace std;
 
 int main() {
-    FilesPaths::getInstance().init("/home/atos/Projects/TIN/ServerApp/src/config/build_default.ini");
+    FilesPaths::getInstance().init("../src/config/build_default.ini");
     HTTPServerFacade httpServer = HTTPServerFacade::getServer();
     httpServer.runServer();
 
